@@ -10,14 +10,8 @@ const firebaseConfig = {
     appId: "1:771763997507:web:28dc480257c070c0f93df6"
 };
 
-// Inicializar Firebase
+// Inicializar Firebase (las variables se declaran en index.html)
 firebase.initializeApp(firebaseConfig);
-
-// Inicializar Firestore
-const db = firebase.firestore();
-
-// Inicializar Autenticación
-const auth = firebase.auth();
 
 // Funciones de utilidad
 function getCurrentUser() {

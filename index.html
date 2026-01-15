@@ -673,27 +673,37 @@
     
     <script>
         // ==================== FIREBASE INITIALIZATION ====================
-        let db, auth, secondaryAuth;
-        let currentUser = null;
-        let currentFolder = 'all';
-        let editingUserId = null;
-        let deletingUserId = null;
-        let deletingType = null;
-        let usersData = [];
-        let sessionsData = [];
-        let foldersData = [];
-        let currentUserData = null;
+        // Declarar variables globales (se inicializarán desde firebase-config.js)
+        var currentUser = null;
+        var currentFolder = 'all';
+        var editingUserId = null;
+        var deletingUserId = null;
+        var deletingType = null;
+        var usersData = [];
+        var sessionsData = [];
+        var foldersData = [];
+        var currentUserData = null;
         
-        // Initialize Firebase
+        // Variables globales de Firebase
+        var db, auth, secondaryAuth;
+        
+        // Initialize Firebase (llamado después de cargar firebase-config.js)
         function initFirebase() {
-            db = firebase.firestore();
-            auth = firebase.auth();
+            // Asignar instancias de Firebase
+            if (typeof db === 'undefined') {
+                db = firebase.firestore();
+            }
+            if (typeof auth === 'undefined') {
+                auth = firebase.auth();
+            }
             
             // Crear instancia secundaria de auth para operaciones administrativas
             // Esto permite al admin crear usuarios sin perder su sesión
             try {
-                secondaryAuth = firebase.initializeApp(firebaseConfig, 'Secondary');
-                secondaryAuth = firebase.auth(secondaryAuth);
+                if (typeof secondaryAuth === 'undefined') {
+                    var secondaryApp = firebase.initializeApp(firebaseConfig, 'Secondary');
+                    secondaryAuth = firebase.auth(secondaryApp);
+                }
             } catch (e) {
                 secondaryAuth = firebase.auth();
             }
