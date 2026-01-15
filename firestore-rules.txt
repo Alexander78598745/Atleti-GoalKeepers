@@ -1,0 +1,50 @@
+// ============================================
+// REGLAS DE SEGURIDAD PARA FIREBASE FIRESTORE
+// ============================================
+// Copia y pega estas reglas en Firebase Console > Firestore Database > Reglas
+// Debes cambiar "TU_COLECCION" por el nombre real de tu colección si es diferente
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función para verificar si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Función para verificar si es el propietario del documento
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // === COLECCIÓN: users ===
+    // Los usuarios pueden:
+    // - Leer: cualquier usuario autenticado
+    // - Escribir: solo el propio usuario o admins
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || 
+                    (isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+    
+    // === COLECCIÓN: sessions (sesiones de entrenamiento) ===
+    // Los usuarios pueden:
+    // - Leer: cualquier usuario autenticado
+    // - Escribir: cualquier usuario autenticado (todos pueden subir sesiones)
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // === COLECCIÓN: folders (carpetas de sesiones) ===
+    // Los usuarios pueden:
+    // - Leer: cualquier usuario autenticado
+    // - Escribir: solo admins (para crear/eliminar carpetas)
+    match /folders/{folderId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}

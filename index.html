@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AtletiKeepers Pro - Entrenadores de Porteros</title>
+    <link rel="icon" href="user_input_files/ESCUDO ATM.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --atm-red: #CB3524;
+            --atm-red-dark: #A8281A;
+            --atm-blue: #272E61;
+            --atm-blue-light: #3D4585;
+            --white: #FFFFFF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+            min-height: 100vh;
+        }
+        h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 600; }
+        
+        /* Login */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+        }
+        .login-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 3rem;
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-header { text-align: center; margin-bottom: 2rem; }
+        .logo-escudo {
+            width: 120px;
+            height: 120px;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            object-fit: contain;
+            background: var(--gray-100);
+            padding: 0.5rem;
+        }
+        .login-header h1 { font-size: 1.75rem; color: var(--atm-blue); margin-bottom: 0.5rem; }
+        .login-header .subtitle { color: var(--gray-500); font-size: 0.95rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-weight: 500; color: var(--gray-700); margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: 0.3s;
+            background: var(--gray-50);
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--atm-red); background: var(--white); }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--atm-red); color: var(--white); }
+        .btn-primary:hover { background: var(--atm-red-dark); }
+        .btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+        .btn-secondary:hover { background: var(--gray-300); }
+        .btn-block { width: 100%; }
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--atm-red);
+            color: var(--atm-red);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        /* App */
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 280px;
+            background: var(--atm-blue);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+        .sidebar-header {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-logo { width: 48px; height: 48px; border-radius: 8px; background: var(--white); padding: 4px; object-fit: contain; }
+        .sidebar-header h2 { font-size: 1.25rem; color: var(--white); }
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 1rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            transition: 0.3s;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.1); color: var(--white); }
+        .nav-item.active { background: rgba(255, 255, 255, 0.15); color: var(--white); border-left: 3px solid var(--atm-red); }
+        .nav-icon { width: 22px; height: 22px; }
+        .sidebar-footer { padding: 1rem 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .user-info { display: flex; align-items: center; gap: 0.875rem; margin-bottom: 1rem; }
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--atm-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--white);
+            overflow: hidden;
+        }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-name { font-weight: 500; font-size: 0.95rem; }
+        .user-role { font-size: 0.8rem; opacity: 0.7; }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: var(--gray-300);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle-switch.active {
+            background: var(--atm-red);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active::after {
+            left: 27px;
+        }
+        
+        /* Profile Image Input */
+        .profile-image-input {
+            display: none;
+        }
+        .profile-image-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--gray-100);
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+        .profile-image-label:hover {
+            border-color: var(--atm-red);
+            color: var(--atm-red);
+        }
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: var(--radius);
+            color: var(--white);
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .btn-logout:hover { background: rgba(255, 255, 255, 0.2); }
+        .main-content { flex: 1; margin-left: 280px; min-height: 100vh; }
+        .main-header {
+            background: var(--white);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .menu-toggle { display: none; background: none; border: none; padding: 0.5rem; cursor: pointer; }
+        .header-title { flex: 1; }
+        .header-title h1 { font-size: 1.5rem; }
+        .header-title p { color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem; }
+        .content-area { flex: 1; padding: 2rem; background: var(--gray-100); }
+        
+        /* Sessions */
+        .sessions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        .session-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .session-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .session-header { padding: 1.25rem; border-bottom: 1px solid var(--gray-100); display: flex; align-items: flex-start; gap: 1rem; }
+        .session-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(203, 53, 36, 0.1);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .session-icon svg { width: 28px; height: 28px; color: var(--atm-red); }
+        .session-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.375rem; }
+        .session-meta { font-size: 0.85rem; color: var(--gray-500); }
+        .session-folder {
+            display: inline-block;
+            background: var(--atm-blue);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .session-body { padding: 1.25rem; }
+        .session-description { color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1rem; }
+        .session-uploader { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--gray-500); }
+        .session-footer { padding: 1rem 1.25rem; background: var(--gray-50); display: flex; gap: 0.75rem; }
+        .session-footer .btn { flex: 1; padding: 0.625rem 1rem; font-size: 0.875rem; }
+        
+        /* Upload */
+        .upload-container { max-width: 700px; margin: 0 auto; }
+        .upload-form { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 2rem; }
+        .dropzone {
+            position: relative;
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: 0.3s;
+            background: var(--gray-50);
+            margin-bottom: 1rem;
+        }
+        .dropzone:hover { border-color: var(--atm-red); }
+        .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .dropzone-icon { width: 56px; height: 56px; color: var(--gray-400); margin-bottom: 1rem; }
+        .dropzone-text { font-size: 1.1rem; font-weight: 500; color: var(--gray-700); margin-bottom: 0.375rem; }
+        .dropzone-subtext { font-size: 0.9rem; color: var(--gray-500); }
+        .file-info { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--white); border-radius: var(--radius); }
+        .file-icon { width: 40px; height: 40px; color: var(--atm-red); }
+        .file-name { font-weight: 500; color: var(--gray-800); }
+        .file-size { font-size: 0.85rem; color: var(--gray-500); }
+        .btn-remove-file {
+            width: 36px;
+            height: 36px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }
+        .form-group textarea { width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: var(--radius); font-size: 1rem; font-family: inherit; resize: vertical; min-height: 100px; }
+        
+        /* Admin */
+        .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .admin-tab {
+            padding: 0.75rem 1.5rem;
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+        .admin-tab:hover { border-color: var(--atm-red); }
+        .admin-tab.active { background: var(--atm-red); border-color: var(--atm-red); color: var(--white); }
+        .users-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); }
+        .users-table th, .users-table td { padding: 1rem 1.25rem; text-align: left; }
+        .users-table th { background: var(--gray-50); font-weight: 600; color: var(--gray-700); font-size: 0.9rem; }
+        .users-table tbody tr { border-bottom: 1px solid var(--gray-100); }
+        .users-table tbody tr:hover { background: var(--gray-50); }
+        .role-badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .role-badge.admin { background: rgba(203, 53, 36, 0.1); color: var(--atm-red); }
+        .role-badge.coach { background: rgba(39, 46, 97, 0.1); color: var(--atm-blue); }
+        .action-buttons { display: flex; gap: 0.5rem; }
+        .btn-icon-action { width: 36px; height: 36px; padding: 0; border-radius: 8px; }
+        
+        /* Folders */
+        .folders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .folder-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .folder-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .folder-card.active { border: 2px solid var(--atm-red); }
+        .folder-icon { width: 40px; height: 40px; color: var(--atm-blue); }
+        .folder-name { font-weight: 500; flex: 1; }
+        .folder-count { font-size: 0.85rem; color: var(--gray-500); }
+        
+        /* Modal */
+        .modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 2rem; }
+        .modal.show { display: flex; }
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); }
+        .modal-content { position: relative; background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); width: 100%; max-width: 480px; }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+        .modal-header h3 { font-size: 1.25rem; }
+        .modal-close { width: 36px; height: 36px; background: var(--gray-100); border: none; border-radius: 8px; cursor: pointer; }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { padding: 1.5rem; border-top: 1px solid var(--gray-200); display: flex; gap: 1rem; justify-content: flex-end; }
+        
+        /* Empty State */
+        .empty-state { text-align: center; padding: 4rem 2rem; }
+        .empty-icon { width: 80px; height: 80px; color: var(--gray-300); margin: 0 auto 1rem; }
+        .empty-state h3 { color: var(--gray-700); margin-bottom: 0.5rem; }
+        .empty-state p { color: var(--gray-500); margin-bottom: 1.5rem; }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .menu-toggle { display: flex; }
+        }
+        @media (max-width: 768px) {
+            .login-card { padding: 2rem 1.5rem; }
+            .logo-escudo { width: 100px; height: 100px; }
+            .main-header { padding: 1rem 1.25rem; flex-wrap: wrap; }
+            .sessions-grid { grid-template-columns: 1fr; }
+            .upload-form { padding: 1.5rem; }
+            .form-actions { flex-direction: column; }
+            .form-actions .btn { width: 100%; }
+            .users-table { overflow-x: auto; }
+            .folders-grid { grid-template-columns: 1fr; }
+            .admin-tabs { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login -->
+    <div class="login-container" id="loginPage">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="user_input_files/ESCUDO ATM.png" alt="Escudo Atlético de Madrid" class="logo-escudo" id="loginLogo" onerror="this.outerHTML='<div style=\'width:120px;height:120px;border-radius:12px;background:var(--atm-red);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;\'><span style=\'font-size:48px;font-weight:bold;color:white;\'>ATM</span></div>'">
+                <h1>AtletiKeepers Pro</h1>
+                <p class="subtitle">Plataforma de Entrenadores de Porteros</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- App -->
+    <div class="app-container" id="appPage" style="display:none;">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="user_input_files/ESCUDO ATM.png" alt="Escudo Atlético de Madrid" class="sidebar-logo" id="sidebarLogo" onerror="this.outerHTML='<div style=\'width:48px;height:48px;border-radius:8px;background:var(--atm-red);display:flex;align-items:center;justify-content:center;\'><span style=\'font-size:20px;font-weight:bold;color:white;\'>ATM</span></div>'">
+                <h2>AtletiKeepers</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+                    <span>Sesiones</span>
+                </a>
+                <a href="#" class="nav-item" data-page="upload">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17,8 12,3 7,8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Subir Sesión</span>
+                </a>
+                <a href="#" class="nav-item" data-page="admin" id="adminLink" style="display:none;">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33"></path>
+                    </svg>
+                    <span>Administración</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <div>
+                        <div class="user-name" id="userName"></div>
+                        <div class="user-role" id="userRole"></div>
+                    </div>
+                </div>
+                <button class="btn-logout" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <button class="menu-toggle" id="menuToggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <img src="user_input_files/ESCUDO ATM.png" alt="Escudo Atlético" style="width:50px;height:50px;object-fit:contain;border-radius:8px;background:var(--gray-100);padding:4px;" onerror="this.outerHTML='<div style=\'width:50px;height:50px;border-radius:8px;background:var(--atm-red);display:flex;align-items:center;justify-content:center;\'><span style=\'font-size:18px;font-weight:bold;color:white;\'>ATM</span></div>'">
+                <div class="header-title">
+                    <h1 id="pageTitle">Sesiones de Entrenamiento</h1>
+                    <p id="pageSubtitle">Gestiona y visualiza las sesiones de los porteros</p>
+                </div>
+                <div class="header-actions" id="headerActions"></div>
+            </header>
+            <div class="content-area" id="contentArea"></div>
+        </main>
+    </div>
+
+    <!-- User Modal -->
+    <div class="modal" id="userModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Nuevo Usuario</h3>
+                <button class="modal-close" onclick="closeModal('userModal')">✕</button>
+            </div>
+            <form id="userForm" class="modal-body">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label>Foto de Perfil</label>
+                    <div id="profileImagePreview" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1rem;background:var(--gray-50);border-radius:var(--radius);margin-bottom:1rem;">
+                        <div class="user-avatar" style="width:80px;height:80px;font-size:2rem;background:var(--gray-300);">?</div>
+                    </div>
+                    <label for="profileImageInput" class="profile-image-label" style="width:100%;text-align:center;box-sizing:border-box;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17,8 12,3 7,8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span id="profileImageLabel">Subir foto</span>
+                    </label>
+                    <input type="file" id="profileImageInput" class="profile-image-input" accept="image/*" onchange="handleProfileImage(this)">
+                    <input type="hidden" id="profileImageData">
+                </div>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="userUsername" required>
+                </div>
+                <div class="form-group" id="passwordGroup">
+                    <label>Contraseña</label>
+                    <input type="password" id="userPassword" required>
+                </div>
+                <div class="form-group" id="editPasswordGroup" style="display:none;">
+                    <label>Nueva Contraseña (opcional)</label>
+                    <input type="password" id="userNewPassword">
+                </div>
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="userFullName" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select id="userRole">
+                        <option value="coach">Entrenador</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Folder Modal -->
+    <div class="modal" id="folderModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nueva Carpeta</h3>
+                <button class="modal-close" onclick="closeModal('folderModal')">✕</button>
+            </div>
+            <form id="folderForm" class="modal-body">
+                <div class="form-group">
+                    <label>Nombre de la Carpeta</label>
+                    <input type="text" id="folderName" placeholder="Ej: Categoría Alevín" required>
+                </div>
+                <div class="form-group">
+                    <label>Asignar a Entrenador</label>
+                    <select id="folderUser">
+                        <option value="">Seleccionar entrenador...</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('folderModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Carpeta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width:420px;text-align:center;">
+            <div class="modal-header">
+                <h3>Confirmar Eliminación</h3>
+                <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este elemento?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancelar</button>
+                <button class="btn btn-primary" style="background:var(--atm-red)" id="confirmDeleteBtn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos local
+        const DB_KEYS = { USERS: 'atleti_users', SESSIONS: 'atleti_sessions', FOLDERS: 'atleti_folders' };
+        
+        function getDB(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+        
+        function setDB(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        // Inicializar datos por defecto
+        function initDB() {
+            if (!getDB(DB_KEYS.USERS)) {
+                setDB(DB_KEYS.USERS, [{
+                    id: '1',
+                    username: 'admin',
+                    password: 'atleti2024',
+                    fullName: 'Administrador Atlético',
+                    role: 'admin',
+                    active: true,
+                    profileImage: null
+                }]);
+            }
+            if (!getDB(DB_KEYS.SESSIONS)) {
+                setDB(DB_KEYS.SESSIONS, []);
+            }
+            if (!getDB(DB_KEYS.FOLDERS)) {
+                setDB(DB_KEYS.FOLDERS, []);
+            }
+        }
+        
+        initDB();
+        
+        // Variables globales
+        let currentUser = null;
+        let currentFolder = 'all';
+        let editingUserId = null;
+        let deletingUserId = null;
+        let deletingType = null;
+        
+        // Funciones de utilidad
+        function getInitials(name) {
+            return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const users = getDB(DB_KEYS.USERS);
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                if (!user.active) {
+                    document.getElementById('errorMessage').textContent = 'Tu cuenta está desactivada. Contacta con un administrador.';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    return;
+                }
+                currentUser = user;
+                localStorage.setItem('atleti_currentUser', JSON.stringify(user));
+                showApp();
+            } else {
+                document.getElementById('errorMessage').textContent = 'Credenciales inválidas';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+        
+        // Mostrar aplicación
+        function showApp() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('appPage').style.display = 'flex';
+            document.getElementById('userName').textContent = currentUser.fullName;
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Entrenador';
+            
+            // Mostrar avatar con imagen o iniciales
+            const userAvatar = document.getElementById('userAvatar');
+            if (currentUser.profileImage) {
+                userAvatar.innerHTML = `<img src="${currentUser.profileImage}" alt="${escapeHtml(currentUser.fullName)}">`;
+            } else {
+                userAvatar.textContent = getInitials(currentUser.fullName);
+            }
+            
+            document.getElementById('adminLink').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+            
+            showPage('dashboard');
+        }
+        
+        // Cerrar sesión
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('atleti_currentUser');
+            location.reload();
+        });
+        
+        // Navegación
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                showPage(item.dataset.page);
+            });
+        });
+        
+        // Mostrar páginas
+        function showPage(page) {
+            const title = document.getElementById('pageTitle');
+            const subtitle = document.getElementById('pageSubtitle');
+            const actions = document.getElementById('headerActions');
+            const content = document.getElementById('contentArea');
+            
+            actions.innerHTML = '';
+            currentFolder = 'all';
+            
+            switch(page) {
+                case 'dashboard':
+                    title.textContent = 'Sesiones de Entrenamiento';
+                    subtitle.textContent = 'Gestiona y visualiza las sesiones de los porteros';
+                    actions.innerHTML = '<button class="btn btn-primary" onclick="showPage(\'upload\')">+ Nueva Sesión</button>';
+                    renderDashboard(content);
+                    break;
+                case 'upload':
+                    title.textContent = 'Subir Nueva Sesión';
+                    subtitle.textContent = 'Comparte sesiones de entrenamiento con el equipo';
+                    renderUpload(content);
+                    break;
+                case 'admin':
+                    title.textContent = 'Administración';
+                    subtitle.textContent = 'Gestiona usuarios, carpetas y sesiones';
+                    renderAdmin(content);
+                    break;
+            }
+        }
+        
+        // Render Dashboard
+        function renderDashboard(container) {
+            const sessions = getDB(DB_KEYS.SESSIONS);
+            const folders = getDB(DB_KEYS.FOLDERS);
+            const users = getDB(DB_KEYS.USERS);
+            
+            // Mostrar carpetas
+            let folderFilter = '';
+            if (folders.length > 0) {
+                folderFilter = `
+                    <div class="folders-grid">
+                        <div class="folder-card ${currentFolder === 'all' ? 'active' : ''}" onclick="filterByFolder('all')">
+                            <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <div>
+                                <div class="folder-name">Todas las carpetas</div>
+                                <div class="folder-count">${sessions.length} sesiones</div>
+                            </div>
+                        </div>
+                        ${folders.map(f => `
+                            <div class="folder-card ${currentFolder === f.id ? 'active' : ''}" onclick="filterByFolder('${f.id}')">
+                                <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <div>
+                                    <div class="folder-name">${escapeHtml(f.name)}</div>
+                                    <div class="folder-count">${sessions.filter(s => s.folderId === f.id).length} sesiones</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            // Filtrar sesiones por carpeta
+            let filteredSessions = sessions;
+            if (currentFolder !== 'all') {
+                filteredSessions = sessions.filter(s => s.folderId === currentFolder);
+            }
+            
+            if (filteredSessions.length === 0) {
+                container.innerHTML = folderFilter + `
+                    <div class="empty-state">
+                        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14,2 14,8 20,8"></polyline>
+                        </svg>
+                        <h3>No hay sesiones en esta carpeta</h3>
+                        <p>Sube tu primera sesión de entrenamiento</p>
+                        <button class="btn btn-primary" onclick="showPage('upload')">Subir Sesión</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = folderFilter + '<div class="sessions-grid">' + filteredSessions.map(s => {
+                const folder = folders.find(f => f.id === s.folderId);
+                const uploader = users.find(u => u.id === s.uploadedBy);
+                const uploaderImage = uploader && uploader.profileImage ? 
+                    `<img src="${uploader.profileImage}" alt="${escapeHtml(uploader.fullName)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:4px;">` : 
+                    `<div class="user-avatar" style="width:20px;height:20px;font-size:0.65rem;background:var(--gray-400);">${getInitials(s.uploaderName)}</div>`;
+                return `
+                <div class="session-card">
+                    <div class="session-header">
+                        <div class="session-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="session-title">${escapeHtml(s.title)}</h3>
+                            <p class="session-meta">${formatDate(s.uploadDate)}</p>
+                            ${folder ? `<span class="session-folder">📁 ${escapeHtml(folder.name)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="session-body">
+                        ${s.description ? `<p class="session-description">${escapeHtml(s.description)}</p>` : ''}
+                        <div class="session-uploader">
+                            ${uploaderImage}
+                            <span>Subido por: ${escapeHtml(s.uploaderName)}</span>
+                        </div>
+                    </div>
+                    <div class="session-footer">
+                        <button class="btn btn-secondary" onclick="viewPDF('${s.id}')">Ver</button>
+                        <button class="btn btn-primary" onclick="downloadPDF('${s.id}')">Descargar</button>
+                    </div>
+                </div>
+                `;
+            }).join('') + '</div>';
+        }
+        
+        function filterByFolder(folderId) {
+            currentFolder = folderId;
+            renderDashboard(document.getElementById('contentArea'));
+        }
+        
+        // View PDF (base64)
+        function viewPDF(id) {
+            const sessions = getDB(DB_KEYS.SESSIONS);
+            const session = sessions.find(s => s.id === id);
+            if (session && session.pdfData) {
+                const blob = base64ToBlob(session.pdfData, 'application/pdf');
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } else {
+                alert('No se puede visualizar el PDF');
+            }
+        }
+        
+        function downloadPDF(id) {
+            const sessions = getDB(DB_KEYS.SESSIONS);
+            const session = sessions.find(s => s.id === id);
+            if (session && session.pdfData) {
+                const blob = base64ToBlob(session.pdfData, 'application/pdf');
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = session.originalName;
+                link.click();
+            }
+        }
+        
+        function base64ToBlob(base64, type) {
+            const bytes = atob(base64.split(',')[1]);
+            const ab = new ArrayBuffer(bytes.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+            return new Blob([ab], { type });
+        }
+        
+        // Render Upload
+        function renderUpload(container) {
+            const folders = getDB(DB_KEYS.FOLDERS);
+            
+            container.innerHTML = `
+                <div class="upload-container">
+                    <form class="upload-form" id="uploadForm">
+                        <div class="form-group">
+                            <label>Carpeta</label>
+                            <select id="sessionFolder" required>
+                                <option value="">Seleccionar carpeta...</option>
+                                ${folders.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Título de la Sesión</label>
+                            <input type="text" id="sessionTitle" placeholder="Ej: Entrenamiento de reflejos" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción (Opcional)</label>
+                            <textarea id="sessionDesc" placeholder="Describe los objetivos de la sesión..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Archivo PDF</label>
+                            <div class="dropzone">
+                                <input type="file" id="pdfFile" accept=".pdf" required>
+                                <div id="dropzoneContent">
+                                    <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                    </svg>
+                                    <p class="dropzone-text">Arrastra y suelta tu PDF aquí</p>
+                                    <p class="dropzone-subtext">o haz clic para seleccionar</p>
+                                </div>
+                                <div class="file-info" id="fileInfo" style="display:none;">
+                                    <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                    </svg>
+                                    <div>
+                                        <span class="file-name" id="fileName"></span>
+                                        <span class="file-size" id="fileSize"></span>
+                                    </div>
+                                    <button type="button" class="btn-remove-file" onclick="clearFile()">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="showPage('dashboard')">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Subir Sesión</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            const pdfFile = document.getElementById('pdfFile');
+            pdfFile.addEventListener('change', handleFileSelect);
+            
+            document.getElementById('uploadForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const folderId = document.getElementById('sessionFolder').value;
+                const title = document.getElementById('sessionTitle').value;
+                const desc = document.getElementById('sessionDesc').value;
+                const file = pdfFile.files[0];
+                
+                if (!folderId) { alert('Selecciona una carpeta'); return; }
+                if (!file) { alert('Selecciona un PDF'); return; }
+                
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const sessions = getDB(DB_KEYS.SESSIONS);
+                    sessions.unshift({
+                        id: Date.now().toString(),
+                        folderId,
+                        title,
+                        description: desc,
+                        filename: file.name,
+                        originalName: file.name,
+                        pdfData: reader.result,
+                        uploadedBy: currentUser.id,
+                        uploaderName: currentUser.fullName,
+                        uploadDate: new Date().toISOString()
+                    });
+                    setDB(DB_KEYS.SESSIONS, sessions);
+                    alert('Sesión subida correctamente');
+                    showPage('dashboard');
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('dropzoneContent').style.display = 'none';
+                document.getElementById('fileInfo').style.display = 'flex';
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            }
+        }
+        
+        function clearFile() {
+            document.getElementById('pdfFile').value = '';
+            document.getElementById('dropzoneContent').style.display = 'block';
+            document.getElementById('fileInfo').style.display = 'none';
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Render Admin
+        function renderAdmin(container) {
+            container.innerHTML = `
+                <div class="admin-tabs">
+                    <button class="admin-tab active" onclick="switchAdminTab('users')">👥 Usuarios</button>
+                    <button class="admin-tab" onclick="switchAdminTab('folders')">📁 Carpetas</button>
+                </div>
+                <div id="adminContent"></div>
+            `;
+            renderUsersTab();
+        }
+        
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            if (tab === 'users') renderUsersTab();
+            else renderFoldersTab();
+        }
+        
+        function renderUsersTab() {
+            const users = getDB(DB_KEYS.USERS);
+            const content = document.getElementById('adminContent');
+            
+            content.innerHTML = `
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>${users.map(u => {
+                        const avatarHtml = u.profileImage ? 
+                            `<img src="${u.profileImage}" alt="${escapeHtml(u.fullName)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">` : 
+                            `<div class="user-avatar" style="width:38px;height:38px;font-size:0.9rem;">${getInitials(u.fullName)}</div>`;
+                        return `
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:0.875rem;">
+                                    ${avatarHtml}
+                                    ${escapeHtml(u.username)}
+                                </div>
+                            </td>
+                            <td>${escapeHtml(u.fullName)}</td>
+                            <td><span class="role-badge ${u.role}">${u.role === 'admin' ? 'Administrador' : 'Entrenador'}</span></td>
+                            <td>
+                                <div class="toggle-switch ${u.active ? 'active' : ''}" onclick="toggleUserActive('${u.id}')" title="${u.active ? 'Activo - Clic para desactivar' : 'Inactivo - Clic para activar'}"></div>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary btn-icon-action" onclick="editUser('${u.id}')" title="Editar">✏️</button>
+                                    <button class="btn btn-secondary btn-icon-action" onclick="changePassword('${u.id}')" title="Contraseña">🔒</button>
+                                    ${users.filter(x => x.role === 'admin').length > 1 || u.role !== 'admin' ? `
+                                    <button class="btn btn-primary btn-icon-action" style="background:var(--atm-red)" onclick="deleteUser('${u.id}', 'user')" title="Eliminar">🗑️</button>
+                                    ` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `}).join('')}</tbody>
+                </table>
+                <div style="margin-top:1.5rem;">
+                    <button class="btn btn-primary" onclick="showUserModal()">+ Nuevo Usuario</button>
+                </div>
+            `;
+        }
+        
+        function renderFoldersTab() {
+            const folders = getDB(DB_KEYS.FOLDERS);
+            const users = getDB(DB_KEYS.USERS);
+            const content = document.getElementById('adminContent');
+            
+            content.innerHTML = folders.length === 0 ? `
+                <div class="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <h3>No hay carpetas aún</h3>
+                    <p>Crea carpetas para organizar las sesiones por entrenador</p>
+                </div>
+            ` : `
+                <div class="folders-grid">
+                    ${folders.map(f => {
+                        const assignedUser = users.find(u => u.id === f.userId);
+                        return `
+                        <div class="folder-card">
+                            <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <div style="flex:1">
+                                <div class="folder-name">${escapeHtml(f.name)}</div>
+                                <div class="folder-count">${assignedUser ? escapeHtml(assignedUser.fullName) : 'Sin asignar'}</div>
+                            </div>
+                            <button class="btn btn-icon-action" style="background:var(--atm-red);color:white;" onclick="deleteUser('${f.id}', 'folder')" title="Eliminar">🗑️</button>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            content.innerHTML += `
+                <div style="margin-top:1.5rem;">
+                    <button class="btn btn-primary" onclick="showFolderModal()">+ Nueva Carpeta</button>
+                </div>
+            `;
+        }
+        
+        function showUserModal(id = null) {
+            editingUserId = id;
+            document.getElementById('userModalTitle').textContent = id ? 'Editar Usuario' : 'Nuevo Usuario';
+            document.getElementById('userId').value = id || '';
+            
+            // Update label text
+            document.getElementById('profileImageLabel').textContent = id ? 'Cambiar foto' : 'Subir foto';
+            
+            const passwordGroup = document.getElementById('passwordGroup');
+            const editPasswordGroup = document.getElementById('editPasswordGroup');
+            
+            if (id) {
+                const users = getDB(DB_KEYS.USERS);
+                const user = users.find(u => u.id === id);
+                document.getElementById('userUsername').value = user.username;
+                document.getElementById('userFullName').value = user.fullName;
+                document.getElementById('userRole').value = user.role;
+                passwordGroup.style.display = 'none';
+                document.getElementById('userPassword').required = false;
+                editPasswordGroup.style.display = 'block';
+                
+                // Mostrar imagen actual si existe
+                const previewContainer = document.getElementById('profileImagePreview');
+                if (user.profileImage) {
+                    previewContainer.innerHTML = `
+                        <img src="${user.profileImage}" alt="Foto de perfil" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--atm-red);">
+                        <button type="button" class="btn btn-secondary" style="margin-top:0.5rem;" onclick="removeProfileImage()">Quitar foto</button>
+                    `;
+                    previewContainer.dataset.hasImage = 'true';
+                } else {
+                    previewContainer.innerHTML = `
+                        <div class="user-avatar" style="width:80px;height:80px;font-size:2rem;background:var(--gray-300);">${getInitials(user.fullName)}</div>
+                    `;
+                    previewContainer.dataset.hasImage = 'false';
+                }
+            } else {
+                document.getElementById('userForm').reset();
+                passwordGroup.style.display = 'block';
+                document.getElementById('userPassword').required = true;
+                editPasswordGroup.style.display = 'none';
+                // Establecer rol por defecto a entrenador
+                document.getElementById('userRole').value = 'coach';
+                // Limpiar el campo de imagen de perfil para evitar que se guarde la imagen del admin
+                document.getElementById('profileImageData').value = '';
+                document.getElementById('profileImageInput').value = '';
+                document.getElementById('profileImagePreview').innerHTML = `
+                    <div class="user-avatar" style="width:80px;height:80px;font-size:2rem;background:var(--gray-300);">?</div>
+                `;
+                document.getElementById('profileImagePreview').dataset.hasImage = 'false';
+            }
+            openModal('userModal');
+        }
+        
+        function editUser(id) { showUserModal(id); }
+        
+        function changePassword(id) {
+            const newPass = prompt('Nueva contraseña:');
+            if (newPass) {
+                const users = getDB(DB_KEYS.USERS);
+                const idx = users.findIndex(u => u.id === id);
+                if (idx !== -1) {
+                    users[idx].password = newPass;
+                    setDB(DB_KEYS.USERS, users);
+                    alert('Contraseña actualizada correctamente');
+                }
+            }
+        }
+        
+        function toggleUserActive(id) {
+            const users = getDB(DB_KEYS.USERS);
+            const idx = users.findIndex(u => u.id === id);
+            if (idx !== -1) {
+                users[idx].active = !users[idx].active;
+                setDB(DB_KEYS.USERS, users);
+                renderUsersTab();
+            }
+        }
+        
+        function deleteUser(id, type) {
+            deletingUserId = id;
+            deletingType = type;
+            openModal('deleteModal');
+        }
+        
+        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+            if (deletingUserId) {
+                if (deletingType === 'user') {
+                    let users = getDB(DB_KEYS.USERS);
+                    users = users.filter(u => u.id !== deletingUserId);
+                    setDB(DB_KEYS.USERS, users);
+                } else {
+                    let folders = getDB(DB_KEYS.FOLDERS);
+                    folders = folders.filter(f => f.id !== deletingUserId);
+                    setDB(DB_KEYS.FOLDERS, folders);
+                }
+                closeModal('deleteModal');
+                if (deletingType === 'user') renderUsersTab();
+                else renderFoldersTab();
+            }
+        });
+        
+        document.getElementById('userForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const users = getDB(DB_KEYS.USERS);
+            const profileImage = document.getElementById('profileImageData').value;
+            
+            if (editingUserId) {
+                const idx = users.findIndex(u => u.id === editingUserId);
+                if (idx !== -1) {
+                    users[idx].username = document.getElementById('userUsername').value;
+                    users[idx].fullName = document.getElementById('userFullName').value;
+                    users[idx].role = document.getElementById('userRole').value;
+                    const newPass = document.getElementById('userNewPassword').value;
+                    if (newPass) users[idx].password = newPass;
+                    if (profileImage) users[idx].profileImage = profileImage;
+                    
+                    // Actualizar usuario actual si es el mismo
+                    if (currentUser.id === editingUserId) {
+                        currentUser = users[idx];
+                        localStorage.setItem('atleti_currentUser', JSON.stringify(currentUser));
+                        // Actualizar avatar en sidebar
+                        const userAvatar = document.getElementById('userAvatar');
+                        if (currentUser.profileImage) {
+                            userAvatar.innerHTML = `<img src="${currentUser.profileImage}" alt="${escapeHtml(currentUser.fullName)}">`;
+                        } else {
+                            userAvatar.textContent = getInitials(currentUser.fullName);
+                        }
+                    }
+                }
+            } else {
+                users.push({
+                    id: Date.now().toString(),
+                    username: document.getElementById('userUsername').value,
+                    password: document.getElementById('userPassword').value,
+                    fullName: document.getElementById('userFullName').value,
+                    role: document.getElementById('userRole').value,
+                    active: true,
+                    profileImage: profileImage || null
+                });
+            }
+            setDB(DB_KEYS.USERS, users);
+            closeModal('userModal');
+            renderUsersTab();
+        });
+        
+        function showFolderModal() {
+            const users = getDB(DB_KEYS.USERS);
+            const select = document.getElementById('folderUser');
+            
+            // Primero intentar mostrar entrenadores (no admin)
+            let coachUsers = users.filter(u => u.role !== 'admin');
+            
+            if (coachUsers.length > 0) {
+                select.innerHTML = '<option value="">Seleccionar entrenador...</option>' + 
+                    coachUsers.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)}</option>`).join('');
+            } else {
+                // Si no hay entrenadores, mostrar todos los usuarios
+                select.innerHTML = '<option value="">Seleccionar usuario...</option>' + 
+                    users.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)} (${u.role === 'admin' ? 'Admin' : 'Entrenador'})</option>`).join('');
+            }
+            
+            document.getElementById('folderForm').reset();
+            openModal('folderModal');
+        }
+        
+        document.getElementById('folderForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const folders = getDB(DB_KEYS.FOLDERS);
+            folders.push({
+                id: Date.now().toString(),
+                name: document.getElementById('folderName').value,
+                userId: document.getElementById('folderUser').value || null,
+                createdAt: new Date().toISOString()
+            });
+            setDB(DB_KEYS.FOLDERS, folders);
+            closeModal('folderModal');
+            renderFoldersTab();
+        });
+        
+        function handleProfileImage(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    document.getElementById('profileImageData').value = base64;
+                    
+                    // Mostrar preview
+                    document.getElementById('profileImagePreview').innerHTML = `
+                        <img src="${base64}" alt="Foto de perfil" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--atm-red);">
+                        <button type="button" class="btn btn-secondary" style="margin-top:0.5rem;" onclick="removeProfileImage()">Quitar foto</button>
+                    `;
+                    document.getElementById('profileImagePreview').dataset.hasImage = 'true';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeProfileImage() {
+            document.getElementById('profileImageInput').value = '';
+            document.getElementById('profileImageData').value = '';
+            const userFullName = document.getElementById('userFullName').value || '?';
+            document.getElementById('profileImagePreview').innerHTML = `
+                <div class="user-avatar" style="width:80px;height:80px;font-size:2rem;background:var(--gray-300);">${getInitials(userFullName)}</div>
+            `;
+            document.getElementById('profileImagePreview').dataset.hasImage = 'false';
+        }
+        
+        // Modal functions
+        function openModal(id) { document.getElementById(id).classList.add('show'); document.body.style.overflow = 'hidden'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); document.body.style.overflow = ''; }
+        
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', () => {
+                overlay.parentElement.classList.remove('show');
+            });
+        });
+        
+        // Verificar sesión activa
+        const savedUser = localStorage.getItem('atleti_currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            showApp();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+// Icono simple para la PWA (192x192)
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" fill="#CB3524" rx="24"/>
+  <circle cx="96" cy="96" r="70" fill="white" opacity="0.95"/>
+  <circle cx="96" cy="96" r="60" fill="#CB3524"/>
+  <text x="96" y="110" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">ATM</text>
+</svg>
