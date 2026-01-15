@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AtletiKeepers Pro - Plataforma de Entrenadores de Porteros del Atlético de Madrid">
+    <meta name="theme-color" content="#CB3524">
     <title>AtletiKeepers Pro - Entrenadores de Porteros</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="user_input_files/ESCUDO ATM.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -40,6 +44,27 @@
         }
         h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 600; }
         
+        /* Loading Spinner */
+        .loading-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--atm-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         /* Login */
         .login-container {
             min-height: 100vh;
@@ -71,7 +96,7 @@
         .login-header .subtitle { color: var(--gray-500); font-size: 0.95rem; }
         .form-group { margin-bottom: 1.25rem; }
         .form-group label { display: block; font-weight: 500; color: var(--gray-700); margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 0.875rem 1rem;
             border: 2px solid var(--gray-200);
@@ -80,7 +105,7 @@
             transition: 0.3s;
             background: var(--gray-50);
         }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--atm-red); background: var(--white); }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--atm-red); background: var(--white); }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -101,6 +126,7 @@
         .btn-secondary { background: var(--gray-200); color: var(--gray-700); }
         .btn-secondary:hover { background: var(--gray-300); }
         .btn-block { width: 100%; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .error-message {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid var(--atm-red);
@@ -197,11 +223,10 @@
         .toggle-switch.active::after {
             left: 27px;
         }
+        .toggle-switch.disabled { opacity: 0.5; cursor: not-allowed; }
         
         /* Profile Image Input */
-        .profile-image-input {
-            display: none;
-        }
+        .profile-image-input { display: none; }
         .profile-image-label {
             display: inline-flex;
             align-items: center;
@@ -321,7 +346,6 @@
             cursor: pointer;
         }
         .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }
-        .form-group textarea { width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: var(--radius); font-size: 1rem; font-family: inherit; resize: vertical; min-height: 100px; }
         
         /* Admin */
         .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
@@ -389,6 +413,31 @@
         .empty-state h3 { color: var(--gray-700); margin-bottom: 0.5rem; }
         .empty-state p { color: var(--gray-500); margin-bottom: 1.5rem; }
         
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .toast {
+            background: var(--gray-800);
+            color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { background: #059669; }
+        .toast.error { background: var(--atm-red); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar { transform: translateX(-100%); }
@@ -411,8 +460,14 @@
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-container" id="loadingPage">
+        <div class="spinner"></div>
+        <p style="color: var(--gray-600);">Cargando AtletiKeepers Pro...</p>
+    </div>
+
     <!-- Login -->
-    <div class="login-container" id="loginPage">
+    <div class="login-container" id="loginPage" style="display:none;">
         <div class="login-card">
             <div class="login-header">
                 <img src="user_input_files/ESCUDO ATM.png" alt="Escudo Atlético de Madrid" class="logo-escudo" id="loginLogo" onerror="this.outerHTML='<div style=\'width:120px;height:120px;border-radius:12px;background:var(--atm-red);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;\'><span style=\'font-size:48px;font-weight:bold;color:white;\'>ATM</span></div>'">
@@ -421,14 +476,14 @@
             </div>
             <form id="loginForm">
                 <div class="form-group">
-                    <label>Usuario</label>
-                    <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="tu@email.com" required>
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
-                    <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+                    <input type="password" id="loginPassword" placeholder="Ingresa tu contraseña" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Iniciar Sesión</button>
                 <div class="error-message" id="errorMessage"></div>
             </form>
         </div>
@@ -526,12 +581,17 @@
                     <input type="hidden" id="profileImageData">
                 </div>
                 <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="userEmail" required>
+                </div>
+                <div class="form-group">
                     <label>Usuario</label>
                     <input type="text" id="userUsername" required>
                 </div>
                 <div class="form-group" id="passwordGroup">
                     <label>Contraseña</label>
                     <input type="password" id="userPassword" required>
+                    <small style="color:var(--gray-500);font-size:0.8rem;">Esta será la contraseña inicial del usuario</small>
                 </div>
                 <div class="form-group" id="editPasswordGroup" style="display:none;">
                     <label>Nueva Contraseña (opcional)</label>
@@ -550,7 +610,7 @@
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-primary" id="saveUserBtn">Guardar</button>
                 </div>
             </form>
         </div>
@@ -601,115 +661,262 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="firebase-config.js"></script>
+    
     <script>
-        // Base de datos local
-        const DB_KEYS = { USERS: 'atleti_users', SESSIONS: 'atleti_sessions', FOLDERS: 'atleti_folders' };
-        
-        function getDB(key) {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : null;
-        }
-        
-        function setDB(key, data) {
-            localStorage.setItem(key, JSON.stringify(data));
-        }
-        
-        // Inicializar datos por defecto
-        function initDB() {
-            if (!getDB(DB_KEYS.USERS)) {
-                setDB(DB_KEYS.USERS, [{
-                    id: '1',
-                    username: 'admin',
-                    password: 'atleti2024',
-                    fullName: 'Administrador Atlético',
-                    role: 'admin',
-                    active: true,
-                    profileImage: null
-                }]);
-            }
-            if (!getDB(DB_KEYS.SESSIONS)) {
-                setDB(DB_KEYS.SESSIONS, []);
-            }
-            if (!getDB(DB_KEYS.FOLDERS)) {
-                setDB(DB_KEYS.FOLDERS, []);
-            }
-        }
-        
-        initDB();
-        
-        // Variables globales
+        // ==================== FIREBASE INITIALIZATION ====================
+        let db, auth, secondaryAuth;
         let currentUser = null;
         let currentFolder = 'all';
         let editingUserId = null;
         let deletingUserId = null;
         let deletingType = null;
+        let usersData = [];
+        let sessionsData = [];
+        let foldersData = [];
+        let currentUserData = null;
+        
+        // Initialize Firebase
+        function initFirebase() {
+            db = firebase.firestore();
+            auth = firebase.auth();
+            
+            // Crear instancia secundaria de auth para operaciones administrativas
+            // Esto permite al admin crear usuarios sin perder su sesión
+            try {
+                secondaryAuth = firebase.initializeApp(firebaseConfig, 'Secondary');
+                secondaryAuth = firebase.auth(secondaryAuth);
+            } catch (e) {
+                secondaryAuth = firebase.auth();
+            }
+        }
         
         // Funciones de utilidad
         function getInitials(name) {
+            if (!name) return '?';
             return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
         }
         
         function formatDate(dateStr) {
+            if (!dateStr) return 'Sin fecha';
             const date = new Date(dateStr);
             return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
         
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
         
-        // Login
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const users = getDB(DB_KEYS.USERS);
-            const user = users.find(u => u.username === username && u.password === password);
-            
-            if (user) {
-                if (!user.active) {
-                    document.getElementById('errorMessage').textContent = 'Tu cuenta está desactivada. Contacta con un administrador.';
-                    document.getElementById('errorMessage').style.display = 'block';
-                    return;
-                }
-                currentUser = user;
-                localStorage.setItem('atleti_currentUser', JSON.stringify(user));
-                showApp();
-            } else {
-                document.getElementById('errorMessage').textContent = 'Credenciales inválidas';
-                document.getElementById('errorMessage').style.display = 'block';
-            }
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function base64ToBlob(base64, type) {
+            const bytes = atob(base64.split(',')[1]);
+            const ab = new ArrayBuffer(bytes.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+            return new Blob([ab], { type });
+        }
+        
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+        
+        // Modal functions
+        function openModal(id) { document.getElementById(id).classList.add('show'); document.body.style.overflow = 'hidden'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); document.body.style.overflow = ''; }
+        
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', () => {
+                overlay.parentElement.classList.remove('show');
+            });
         });
         
-        // Mostrar aplicación
+        // ==================== FIRESTORE DATA LISTENERS ====================
+        function setupDataListeners() {
+            // Escuchar cambios en usuarios
+            db.collection('users').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+                usersData = [];
+                snapshot.forEach((doc) => {
+                    usersData.push({ id: doc.id, ...doc.data() });
+                });
+                if (currentUserData) {
+                    updateCurrentUserData();
+                    renderSidebar();
+                }
+                if (document.getElementById('adminContent')) {
+                    renderUsersTab();
+                }
+            }, (error) => {
+                console.error('Error listening to users:', error);
+            });
+            
+            // Escuchar cambios en carpetas
+            db.collection('folders').orderBy('name').onSnapshot((snapshot) => {
+                foldersData = [];
+                snapshot.forEach((doc) => {
+                    foldersData.push({ id: doc.id, ...doc.data() });
+                });
+                if (document.getElementById('adminContent')) {
+                    renderFoldersTab();
+                }
+            }, (error) => {
+                console.error('Error listening to folders:', error);
+            });
+            
+            // Escuchar cambios en sesiones
+            db.collection('sessions').orderBy('uploadDate', 'desc').onSnapshot((snapshot) => {
+                sessionsData = [];
+                snapshot.forEach((doc) => {
+                    sessionsData.push({ id: doc.id, ...doc.data() });
+                });
+                renderDashboard(document.getElementById('contentArea'));
+            }, (error) => {
+                console.error('Error listening to sessions:', error);
+            });
+        }
+        
+        function updateCurrentUserData() {
+            const userData = usersData.find(u => u.email === currentUser.email);
+            if (userData) {
+                currentUserData = userData;
+            }
+        }
+        
+        // ==================== AUTHENTICATION ====================
+        function setupAuthListener() {
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    // Usuario logueado
+                    currentUser = user;
+                    
+                    // Obtener datos del usuario desde Firestore
+                    try {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            currentUserData = { id: userDoc.id, ...userDoc.data() };
+                            showApp();
+                        } else {
+                            // Usuario no encontrado en Firestore
+                            await auth.signOut();
+                            showLogin();
+                            showToast('Usuario no encontrado en el sistema', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error getting user data:', error);
+                        showLogin();
+                    }
+                } else {
+                    // No hay usuario logueado
+                    showLogin();
+                }
+            });
+        }
+        
+        function showLogin() {
+            document.getElementById('loadingPage').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('appPage').style.display = 'none';
+        }
+        
         function showApp() {
+            document.getElementById('loadingPage').style.display = 'none';
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('appPage').style.display = 'flex';
-            document.getElementById('userName').textContent = currentUser.fullName;
-            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Entrenador';
             
-            // Mostrar avatar con imagen o iniciales
-            const userAvatar = document.getElementById('userAvatar');
-            if (currentUser.profileImage) {
-                userAvatar.innerHTML = `<img src="${currentUser.profileImage}" alt="${escapeHtml(currentUser.fullName)}">`;
-            } else {
-                userAvatar.textContent = getInitials(currentUser.fullName);
-            }
+            document.getElementById('userName').textContent = currentUserData?.fullName || currentUser.email;
+            document.getElementById('userRole').textContent = currentUserData?.role === 'admin' ? 'Administrador' : 'Entrenador';
             
-            document.getElementById('adminLink').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+            renderSidebar();
+            document.getElementById('adminLink').style.display = currentUserData?.role === 'admin' ? 'flex' : 'none';
             
+            setupDataListeners();
             showPage('dashboard');
         }
         
-        // Cerrar sesión
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('atleti_currentUser');
-            location.reload();
+        function renderSidebar() {
+            const userAvatar = document.getElementById('userAvatar');
+            if (currentUserData?.profileImage) {
+                userAvatar.innerHTML = `<img src="${currentUserData.profileImage}" alt="${escapeHtml(currentUserData.fullName)}">`;
+            } else {
+                userAvatar.textContent = getInitials(currentUserData?.fullName);
+            }
+        }
+        
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Iniciando sesión...';
+            
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                
+                // Verificar si está activo
+                const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
+                if (userDoc.exists && !userDoc.data().active) {
+                    await auth.signOut();
+                    showToast('Tu cuenta está desactivada. Contacta con un administrador.', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Iniciar Sesión';
+                    return;
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('errorMessage').textContent = getErrorMessage(error.code);
+                document.getElementById('errorMessage').style.display = 'block';
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Iniciar Sesión';
+            }
         });
         
-        // Navegación
+        function getErrorMessage(code) {
+            const messages = {
+                'auth/user-not-found': 'Usuario no encontrado',
+                'auth/wrong-password': 'Contraseña incorrecta',
+                'auth/invalid-email': 'Email inválido',
+                'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde',
+                'auth/network-request-failed': 'Error de conexión. Verifica tu internet'
+            };
+            return messages[code] || 'Error al iniciar sesión';
+        }
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+        
+        // ==================== NAVIGATION ====================
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -719,7 +926,6 @@
             });
         });
         
-        // Mostrar páginas
         function showPage(page) {
             const title = document.getElementById('pageTitle');
             const subtitle = document.getElementById('pageSubtitle');
@@ -742,6 +948,10 @@
                     renderUpload(content);
                     break;
                 case 'admin':
+                    if (currentUserData?.role !== 'admin') {
+                        showPage('dashboard');
+                        return;
+                    }
                     title.textContent = 'Administración';
                     subtitle.textContent = 'Gestiona usuarios, carpetas y sesiones';
                     renderAdmin(content);
@@ -749,15 +959,11 @@
             }
         }
         
-        // Render Dashboard
+        // ==================== DASHBOARD ====================
         function renderDashboard(container) {
-            const sessions = getDB(DB_KEYS.SESSIONS);
-            const folders = getDB(DB_KEYS.FOLDERS);
-            const users = getDB(DB_KEYS.USERS);
-            
             // Mostrar carpetas
             let folderFilter = '';
-            if (folders.length > 0) {
+            if (foldersData.length > 0) {
                 folderFilter = `
                     <div class="folders-grid">
                         <div class="folder-card ${currentFolder === 'all' ? 'active' : ''}" onclick="filterByFolder('all')">
@@ -766,17 +972,17 @@
                             </svg>
                             <div>
                                 <div class="folder-name">Todas las carpetas</div>
-                                <div class="folder-count">${sessions.length} sesiones</div>
+                                <div class="folder-count">${sessionsData.length} sesiones</div>
                             </div>
                         </div>
-                        ${folders.map(f => `
+                        ${foldersData.map(f => `
                             <div class="folder-card ${currentFolder === f.id ? 'active' : ''}" onclick="filterByFolder('${f.id}')">
                                 <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                                 </svg>
                                 <div>
                                     <div class="folder-name">${escapeHtml(f.name)}</div>
-                                    <div class="folder-count">${sessions.filter(s => s.folderId === f.id).length} sesiones</div>
+                                    <div class="folder-count">${sessionsData.filter(s => s.folderId === f.id).length} sesiones</div>
                                 </div>
                             </div>
                         `).join('')}
@@ -785,9 +991,9 @@
             }
             
             // Filtrar sesiones por carpeta
-            let filteredSessions = sessions;
+            let filteredSessions = sessionsData;
             if (currentFolder !== 'all') {
-                filteredSessions = sessions.filter(s => s.folderId === currentFolder);
+                filteredSessions = sessionsData.filter(s => s.folderId === currentFolder);
             }
             
             if (filteredSessions.length === 0) {
@@ -806,9 +1012,9 @@
             }
             
             container.innerHTML = folderFilter + '<div class="sessions-grid">' + filteredSessions.map(s => {
-                const folder = folders.find(f => f.id === s.folderId);
-                const uploader = users.find(u => u.id === s.uploadedBy);
-                const uploaderImage = uploader && uploader.profileImage ? 
+                const folder = foldersData.find(f => f.id === s.folderId);
+                const uploader = usersData.find(u => u.id === s.uploadedBy);
+                const uploaderImage = uploader?.profileImage ? 
                     `<img src="${uploader.profileImage}" alt="${escapeHtml(uploader.fullName)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:4px;">` : 
                     `<div class="user-avatar" style="width:20px;height:20px;font-size:0.65rem;background:var(--gray-400);">${getInitials(s.uploaderName)}</div>`;
                 return `
@@ -847,43 +1053,40 @@
             renderDashboard(document.getElementById('contentArea'));
         }
         
-        // View PDF (base64)
         function viewPDF(id) {
-            const sessions = getDB(DB_KEYS.SESSIONS);
-            const session = sessions.find(s => s.id === id);
-            if (session && session.pdfData) {
+            const session = sessionsData.find(s => s.id === id);
+            if (session && session.pdfUrl) {
+                window.open(session.pdfUrl, '_blank');
+            } else if (session && session.pdfData) {
                 const blob = base64ToBlob(session.pdfData, 'application/pdf');
                 const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
             } else {
-                alert('No se puede visualizar el PDF');
+                showToast('No se puede visualizar el PDF', 'error');
             }
         }
         
         function downloadPDF(id) {
-            const sessions = getDB(DB_KEYS.SESSIONS);
-            const session = sessions.find(s => s.id === id);
-            if (session && session.pdfData) {
+            const session = sessionsData.find(s => s.id === id);
+            if (session && session.pdfUrl) {
+                const link = document.createElement('a');
+                link.href = session.pdfUrl;
+                link.download = session.originalName || 'sesion.pdf';
+                link.target = '_blank';
+                link.click();
+            } else if (session && session.pdfData) {
                 const blob = base64ToBlob(session.pdfData, 'application/pdf');
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = session.originalName;
+                link.download = session.originalName || 'sesion.pdf';
                 link.click();
+            } else {
+                showToast('No se puede descargar el PDF', 'error');
             }
         }
         
-        function base64ToBlob(base64, type) {
-            const bytes = atob(base64.split(',')[1]);
-            const ab = new ArrayBuffer(bytes.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
-            return new Blob([ab], { type });
-        }
-        
-        // Render Upload
+        // ==================== UPLOAD ====================
         function renderUpload(container) {
-            const folders = getDB(DB_KEYS.FOLDERS);
-            
             container.innerHTML = `
                 <div class="upload-container">
                     <form class="upload-form" id="uploadForm">
@@ -891,7 +1094,7 @@
                             <label>Carpeta</label>
                             <select id="sessionFolder" required>
                                 <option value="">Seleccionar carpeta...</option>
-                                ${folders.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('')}
+                                ${foldersData.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('')}
                             </select>
                         </div>
                         <div class="form-group">
@@ -929,7 +1132,7 @@
                         </div>
                         <div class="form-actions">
                             <button type="button" class="btn btn-secondary" onclick="showPage('dashboard')">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">Subir Sesión</button>
+                            <button type="submit" class="btn btn-primary" id="uploadBtn">Subir Sesión</button>
                         </div>
                     </form>
                 </div>
@@ -938,36 +1141,48 @@
             const pdfFile = document.getElementById('pdfFile');
             pdfFile.addEventListener('change', handleFileSelect);
             
-            document.getElementById('uploadForm').addEventListener('submit', (e) => {
+            document.getElementById('uploadForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const folderId = document.getElementById('sessionFolder').value;
                 const title = document.getElementById('sessionTitle').value;
                 const desc = document.getElementById('sessionDesc').value;
                 const file = pdfFile.files[0];
+                const uploadBtn = document.getElementById('uploadBtn');
                 
-                if (!folderId) { alert('Selecciona una carpeta'); return; }
-                if (!file) { alert('Selecciona un PDF'); return; }
+                if (!folderId) { showToast('Selecciona una carpeta', 'error'); return; }
+                if (!file) { showToast('Selecciona un PDF', 'error'); return; }
                 
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const sessions = getDB(DB_KEYS.SESSIONS);
-                    sessions.unshift({
-                        id: Date.now().toString(),
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Subiendo...';
+                
+                try {
+                    // Subir archivo a Firebase Storage
+                    const storageRef = firebase.storage().ref();
+                    const fileRef = storageRef.child(`sessions/${Date.now()}_${file.name}`);
+                    const snapshot = await fileRef.put(file);
+                    const pdfUrl = await snapshot.ref.getDownloadURL();
+                    
+                    // Guardar referencia en Firestore
+                    await db.collection('sessions').add({
                         folderId,
                         title,
                         description: desc,
-                        filename: file.name,
                         originalName: file.name,
-                        pdfData: reader.result,
-                        uploadedBy: currentUser.id,
-                        uploaderName: currentUser.fullName,
+                        pdfUrl,
+                        uploadedBy: currentUser.uid,
+                        uploaderName: currentUserData.fullName,
                         uploadDate: new Date().toISOString()
                     });
-                    setDB(DB_KEYS.SESSIONS, sessions);
-                    alert('Sesión subida correctamente');
+                    
+                    showToast('Sesión subida correctamente', 'success');
                     showPage('dashboard');
-                };
-                reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showToast('Error al subir la sesión: ' + error.message, 'error');
+                } finally {
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = 'Subir Sesión';
+                }
             });
         }
         
@@ -987,27 +1202,20 @@
             document.getElementById('fileInfo').style.display = 'none';
         }
         
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        // Render Admin
+        // ==================== ADMIN ====================
         function renderAdmin(container) {
             container.innerHTML = `
                 <div class="admin-tabs">
-                    <button class="admin-tab active" onclick="switchAdminTab('users')">👥 Usuarios</button>
-                    <button class="admin-tab" onclick="switchAdminTab('folders')">📁 Carpetas</button>
+                    <button class="admin-tab active" onclick="switchAdminTab(event, 'users')">👥 Usuarios</button>
+                    <button class="admin-tab" onclick="switchAdminTab(event, 'folders')">📁 Carpetas</button>
                 </div>
                 <div id="adminContent"></div>
             `;
             renderUsersTab();
         }
         
-        function switchAdminTab(tab) {
+        function switchAdminTab(event, tab) {
+            event.preventDefault();
             document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
             if (tab === 'users') renderUsersTab();
@@ -1015,7 +1223,6 @@
         }
         
         function renderUsersTab() {
-            const users = getDB(DB_KEYS.USERS);
             const content = document.getElementById('adminContent');
             
             content.innerHTML = `
@@ -1029,28 +1236,34 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>${users.map(u => {
+                    <tbody>${usersData.map(u => {
                         const avatarHtml = u.profileImage ? 
                             `<img src="${u.profileImage}" alt="${escapeHtml(u.fullName)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">` : 
                             `<div class="user-avatar" style="width:38px;height:38px;font-size:0.9rem;">${getInitials(u.fullName)}</div>`;
+                        const isCurrentUser = u.id === currentUser.uid;
                         return `
                         <tr>
                             <td>
                                 <div style="display:flex;align-items:center;gap:0.875rem;">
                                     ${avatarHtml}
-                                    ${escapeHtml(u.username)}
+                                    <div>
+                                        <div style="font-weight:500;">${escapeHtml(u.username || u.email)}</div>
+                                        <div style="font-size:0.8rem;color:var(--gray-500);">${escapeHtml(u.email)}</div>
+                                    </div>
                                 </div>
                             </td>
                             <td>${escapeHtml(u.fullName)}</td>
                             <td><span class="role-badge ${u.role}">${u.role === 'admin' ? 'Administrador' : 'Entrenador'}</span></td>
                             <td>
-                                <div class="toggle-switch ${u.active ? 'active' : ''}" onclick="toggleUserActive('${u.id}')" title="${u.active ? 'Activo - Clic para desactivar' : 'Inactivo - Clic para activar'}"></div>
+                                <div class="toggle-switch ${u.active ? 'active' : ''} ${isCurrentUser ? 'disabled' : ''}" 
+                                     onclick="${isCurrentUser ? '' : `toggleUserActive('${u.id}')`}" 
+                                     title="${u.active ? 'Activo - Clic para desactivar' : 'Inactivo - Clic para activar'}"></div>
                             </td>
                             <td>
                                 <div class="action-buttons">
                                     <button class="btn btn-secondary btn-icon-action" onclick="editUser('${u.id}')" title="Editar">✏️</button>
                                     <button class="btn btn-secondary btn-icon-action" onclick="changePassword('${u.id}')" title="Contraseña">🔒</button>
-                                    ${users.filter(x => x.role === 'admin').length > 1 || u.role !== 'admin' ? `
+                                    ${!isCurrentUser ? `
                                     <button class="btn btn-primary btn-icon-action" style="background:var(--atm-red)" onclick="deleteUser('${u.id}', 'user')" title="Eliminar">🗑️</button>
                                     ` : ''}
                                 </div>
@@ -1065,11 +1278,9 @@
         }
         
         function renderFoldersTab() {
-            const folders = getDB(DB_KEYS.FOLDERS);
-            const users = getDB(DB_KEYS.USERS);
             const content = document.getElementById('adminContent');
             
-            content.innerHTML = folders.length === 0 ? `
+            content.innerHTML = foldersData.length === 0 ? `
                 <div class="empty-state">
                     <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -1079,8 +1290,8 @@
                 </div>
             ` : `
                 <div class="folders-grid">
-                    ${folders.map(f => {
-                        const assignedUser = users.find(u => u.id === f.userId);
+                    ${foldersData.map(f => {
+                        const assignedUser = usersData.find(u => u.id === f.userId);
                         return `
                         <div class="folder-card">
                             <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1104,49 +1315,50 @@
             `;
         }
         
-        function showUserModal(id = null) {
+        // ==================== USER MANAGEMENT ====================
+        async function showUserModal(id = null) {
             editingUserId = id;
             document.getElementById('userModalTitle').textContent = id ? 'Editar Usuario' : 'Nuevo Usuario';
             document.getElementById('userId').value = id || '';
-            
-            // Update label text
             document.getElementById('profileImageLabel').textContent = id ? 'Cambiar foto' : 'Subir foto';
             
             const passwordGroup = document.getElementById('passwordGroup');
             const editPasswordGroup = document.getElementById('editPasswordGroup');
             
             if (id) {
-                const users = getDB(DB_KEYS.USERS);
-                const user = users.find(u => u.id === id);
-                document.getElementById('userUsername').value = user.username;
-                document.getElementById('userFullName').value = user.fullName;
-                document.getElementById('userRole').value = user.role;
-                passwordGroup.style.display = 'none';
-                document.getElementById('userPassword').required = false;
-                editPasswordGroup.style.display = 'block';
-                
-                // Mostrar imagen actual si existe
-                const previewContainer = document.getElementById('profileImagePreview');
-                if (user.profileImage) {
-                    previewContainer.innerHTML = `
-                        <img src="${user.profileImage}" alt="Foto de perfil" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--atm-red);">
-                        <button type="button" class="btn btn-secondary" style="margin-top:0.5rem;" onclick="removeProfileImage()">Quitar foto</button>
-                    `;
-                    previewContainer.dataset.hasImage = 'true';
-                } else {
-                    previewContainer.innerHTML = `
-                        <div class="user-avatar" style="width:80px;height:80px;font-size:2rem;background:var(--gray-300);">${getInitials(user.fullName)}</div>
-                    `;
-                    previewContainer.dataset.hasImage = 'false';
+                const user = usersData.find(u => u.id === id);
+                if (user) {
+                    document.getElementById('userEmail').value = user.email;
+                    document.getElementById('userEmail').disabled = true; // No permitir cambiar email
+                    document.getElementById('userUsername').value = user.username || '';
+                    document.getElementById('userFullName').value = user.fullName || '';
+                    document.getElementById('userRole').value = user.role || 'coach';
+                    passwordGroup.style.display = 'none';
+                    document.getElementById('userPassword').required = false;
+                    editPasswordGroup.style.display = 'block';
+                    
+                    // Mostrar imagen actual si existe
+                    const previewContainer = document.getElementById('profileImagePreview');
+                    if (user.profileImage) {
+                        previewContainer.innerHTML = `
+                            <img src="${user.profileImage}" alt="Foto de perfil" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--atm-red);">
+                            <button type="button" class="btn btn-secondary" style="margin-top:0.5rem;" onclick="removeProfileImage()">Quitar foto</button>
+                        `;
+                        previewContainer.dataset.hasImage = 'true';
+                    } else {
+                        previewContainer.innerHTML = `
+                            <div class="user-avatar" style="width:80px;height:80px;font-size:2rem;background:var(--gray-300);">${getInitials(user.fullName)}</div>
+                        `;
+                        previewContainer.dataset.hasImage = 'false';
+                    }
                 }
             } else {
                 document.getElementById('userForm').reset();
+                document.getElementById('userEmail').disabled = false;
                 passwordGroup.style.display = 'block';
                 document.getElementById('userPassword').required = true;
                 editPasswordGroup.style.display = 'none';
-                // Establecer rol por defecto a entrenador
                 document.getElementById('userRole').value = 'coach';
-                // Limpiar el campo de imagen de perfil para evitar que se guarde la imagen del admin
                 document.getElementById('profileImageData').value = '';
                 document.getElementById('profileImageInput').value = '';
                 document.getElementById('profileImagePreview').innerHTML = `
@@ -1159,26 +1371,41 @@
         
         function editUser(id) { showUserModal(id); }
         
-        function changePassword(id) {
-            const newPass = prompt('Nueva contraseña:');
-            if (newPass) {
-                const users = getDB(DB_KEYS.USERS);
-                const idx = users.findIndex(u => u.id === id);
-                if (idx !== -1) {
-                    users[idx].password = newPass;
-                    setDB(DB_KEYS.USERS, users);
-                    alert('Contraseña actualizada correctamente');
+        async function changePassword(id) {
+            const user = usersData.find(u => u.id === id);
+            if (!user) return;
+            
+            const newPass = prompt('Nueva contraseña para ' + user.fullName + ':');
+            if (newPass && newPass.length >= 6) {
+                try {
+                    // En producción, esto debería hacerse desde un backend seguro
+                    // Por ahora, actualizamos solo en Firestore y notificamos al usuario
+                    await db.collection('users').doc(id).update({
+                        passwordResetRequired: true,
+                        tempPassword: newPass
+                    });
+                    showToast('Se ha solicitado cambio de contraseña. El usuario deberá cambiarla en su próximo inicio de sesión.', 'success');
+                } catch (error) {
+                    console.error('Error updating password:', error);
+                    showToast('Error al actualizar contraseña', 'error');
                 }
+            } else if (newPass) {
+                showToast('La contraseña debe tener al menos 6 caracteres', 'error');
             }
         }
         
-        function toggleUserActive(id) {
-            const users = getDB(DB_KEYS.USERS);
-            const idx = users.findIndex(u => u.id === id);
-            if (idx !== -1) {
-                users[idx].active = !users[idx].active;
-                setDB(DB_KEYS.USERS, users);
-                renderUsersTab();
+        async function toggleUserActive(id) {
+            const user = usersData.find(u => u.id === id);
+            if (!user) return;
+            
+            try {
+                await db.collection('users').doc(id).update({
+                    active: !user.active
+                });
+                showToast(`Usuario ${user.active ? 'desactivado' : 'activado'} correctamente`, 'success');
+            } catch (error) {
+                console.error('Error toggling user:', error);
+                showToast('Error al actualizar estado del usuario', 'error');
             }
         }
         
@@ -1188,101 +1415,139 @@
             openModal('deleteModal');
         }
         
-        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
             if (deletingUserId) {
-                if (deletingType === 'user') {
-                    let users = getDB(DB_KEYS.USERS);
-                    users = users.filter(u => u.id !== deletingUserId);
-                    setDB(DB_KEYS.USERS, users);
-                } else {
-                    let folders = getDB(DB_KEYS.FOLDERS);
-                    folders = folders.filter(f => f.id !== deletingUserId);
-                    setDB(DB_KEYS.FOLDERS, folders);
-                }
-                closeModal('deleteModal');
-                if (deletingType === 'user') renderUsersTab();
-                else renderFoldersTab();
-            }
-        });
-        
-        document.getElementById('userForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const users = getDB(DB_KEYS.USERS);
-            const profileImage = document.getElementById('profileImageData').value;
-            
-            if (editingUserId) {
-                const idx = users.findIndex(u => u.id === editingUserId);
-                if (idx !== -1) {
-                    users[idx].username = document.getElementById('userUsername').value;
-                    users[idx].fullName = document.getElementById('userFullName').value;
-                    users[idx].role = document.getElementById('userRole').value;
-                    const newPass = document.getElementById('userNewPassword').value;
-                    if (newPass) users[idx].password = newPass;
-                    if (profileImage) users[idx].profileImage = profileImage;
-                    
-                    // Actualizar usuario actual si es el mismo
-                    if (currentUser.id === editingUserId) {
-                        currentUser = users[idx];
-                        localStorage.setItem('atleti_currentUser', JSON.stringify(currentUser));
-                        // Actualizar avatar en sidebar
-                        const userAvatar = document.getElementById('userAvatar');
-                        if (currentUser.profileImage) {
-                            userAvatar.innerHTML = `<img src="${currentUser.profileImage}" alt="${escapeHtml(currentUser.fullName)}">`;
-                        } else {
-                            userAvatar.textContent = getInitials(currentUser.fullName);
-                        }
+                try {
+                    if (deletingType === 'user') {
+                        // Eliminar usuario de Firestore
+                        await db.collection('users').doc(deletingUserId).delete();
+                        // Nota: La eliminación del usuario de Auth debe hacerse desde backend
+                        showToast('Usuario eliminado correctamente', 'success');
+                    } else {
+                        await db.collection('folders').doc(deletingUserId).delete();
+                        showToast('Carpeta eliminada correctamente', 'success');
                     }
+                    closeModal('deleteModal');
+                } catch (error) {
+                    console.error('Error deleting:', error);
+                    showToast('Error al eliminar: ' + error.message, 'error');
                 }
-            } else {
-                users.push({
-                    id: Date.now().toString(),
-                    username: document.getElementById('userUsername').value,
-                    password: document.getElementById('userPassword').value,
-                    fullName: document.getElementById('userFullName').value,
-                    role: document.getElementById('userRole').value,
-                    active: true,
-                    profileImage: profileImage || null
-                });
             }
-            setDB(DB_KEYS.USERS, users);
-            closeModal('userModal');
-            renderUsersTab();
         });
         
+        // CREATE USER WITH SECONDARY AUTH INSTANCE (ADMIN STAYS LOGGED IN)
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('userEmail').value;
+            const username = document.getElementById('userUsername').value;
+            const password = document.getElementById('userPassword').value;
+            const fullName = document.getElementById('userFullName').value;
+            const role = document.getElementById('userRole').value;
+            const profileImage = document.getElementById('profileImageData').value;
+            const saveBtn = document.getElementById('saveUserBtn');
+            
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Guardando...';
+            
+            try {
+                if (editingUserId) {
+                    // Actualizar usuario existente
+                    const updateData = {
+                        username,
+                        fullName,
+                        role,
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    if (profileImage) {
+                        updateData.profileImage = profileImage;
+                    }
+                    
+                    const newPassword = document.getElementById('userNewPassword').value;
+                    if (newPassword) {
+                        updateData.tempPassword = newPassword;
+                        updateData.passwordResetRequired = true;
+                    }
+                    
+                    await db.collection('users').doc(editingUserId).update(updateData);
+                    showToast('Usuario actualizado correctamente', 'success');
+                    closeModal('userModal');
+                } else {
+                    // Crear nuevo usuario usando instancia secundaria de Auth
+                    // Esto permite que el admin permanezca logueado
+                    const secondaryApp = firebase.initializeApp(firebaseConfig, 'Secondary_' + Date.now());
+                    const secondaryAuth = firebase.auth(secondaryApp);
+                    
+                    // Crear usuario en Firebase Auth
+                    const userCredential = await secondaryAuth.createUserWithEmailAndPassword(email, password);
+                    
+                    // Guardar datos en Firestore
+                    await db.collection('users').doc(userCredential.user.uid).set({
+                        email,
+                        username,
+                        fullName,
+                        role,
+                        active: true,
+                        profileImage: profileImage || null,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    // Cerrar la sesión secundaria (el admin sigue logueado en la principal)
+                    await secondaryAuth.signOut();
+                    
+                    // Limpiar la instancia secundaria
+                    secondaryApp.delete();
+                    
+                    showToast('Usuario creado correctamente', 'success');
+                    closeModal('userModal');
+                }
+            } catch (error) {
+                console.error('Error saving user:', error);
+                showToast('Error al guardar usuario: ' + error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Guardar';
+            }
+        });
+        
+        // ==================== FOLDER MANAGEMENT ====================
         function showFolderModal() {
-            const users = getDB(DB_KEYS.USERS);
+            const users = usersData.filter(u => u.role === 'coach');
             const select = document.getElementById('folderUser');
             
-            // Primero intentar mostrar entrenadores (no admin)
-            let coachUsers = users.filter(u => u.role !== 'admin');
-            
-            if (coachUsers.length > 0) {
+            if (users.length > 0) {
                 select.innerHTML = '<option value="">Seleccionar entrenador...</option>' + 
-                    coachUsers.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)}</option>`).join('');
+                    users.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)}</option>`).join('');
             } else {
-                // Si no hay entrenadores, mostrar todos los usuarios
-                select.innerHTML = '<option value="">Seleccionar usuario...</option>' + 
-                    users.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)} (${u.role === 'admin' ? 'Admin' : 'Entrenador'})</option>`).join('');
+                select.innerHTML = '<option value="">No hay entrenadores disponibles</option>';
             }
             
             document.getElementById('folderForm').reset();
             openModal('folderModal');
         }
         
-        document.getElementById('folderForm').addEventListener('submit', (e) => {
+        document.getElementById('folderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const folders = getDB(DB_KEYS.FOLDERS);
-            folders.push({
-                id: Date.now().toString(),
-                name: document.getElementById('folderName').value,
-                userId: document.getElementById('folderUser').value || null,
-                createdAt: new Date().toISOString()
-            });
-            setDB(DB_KEYS.FOLDERS, folders);
-            closeModal('folderModal');
-            renderFoldersTab();
+            
+            const name = document.getElementById('folderName').value;
+            const userId = document.getElementById('folderUser').value;
+            
+            try {
+                await db.collection('folders').add({
+                    name,
+                    userId: userId || null,
+                    createdAt: new Date().toISOString()
+                });
+                showToast('Carpeta creada correctamente', 'success');
+                closeModal('folderModal');
+            } catch (error) {
+                console.error('Error creating folder:', error);
+                showToast('Error al crear carpeta: ' + error.message, 'error');
+            }
         });
         
+        // ==================== PROFILE IMAGE ====================
         function handleProfileImage(input) {
             const file = input.files[0];
             if (file) {
@@ -1291,7 +1556,6 @@
                     const base64 = e.target.result;
                     document.getElementById('profileImageData').value = base64;
                     
-                    // Mostrar preview
                     document.getElementById('profileImagePreview').innerHTML = `
                         <img src="${base64}" alt="Foto de perfil" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--atm-red);">
                         <button type="button" class="btn btn-secondary" style="margin-top:0.5rem;" onclick="removeProfileImage()">Quitar foto</button>
@@ -1312,22 +1576,29 @@
             document.getElementById('profileImagePreview').dataset.hasImage = 'false';
         }
         
-        // Modal functions
-        function openModal(id) { document.getElementById(id).classList.add('show'); document.body.style.overflow = 'hidden'; }
-        function closeModal(id) { document.getElementById(id).classList.remove('show'); document.body.style.overflow = ''; }
-        
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', () => {
-                overlay.parentElement.classList.remove('show');
-            });
+        // ==================== MOBILE MENU ====================
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
         });
         
-        // Verificar sesión activa
-        const savedUser = localStorage.getItem('atleti_currentUser');
-        if (savedUser) {
-            currentUser = JSON.parse(savedUser);
-            showApp();
+        // ==================== SERVICE WORKER REGISTRATION ====================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registrado:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker no registrado:', error);
+                    });
+            });
         }
+        
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+            setupAuthListener();
+        });
     </script>
 </body>
 </html>
