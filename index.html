@@ -828,13 +828,41 @@
                             currentUserData = { id: userDoc.id, ...userDoc.data() };
                             showApp();
                         } else {
-                            // Usuario no encontrado en Firestore
-                            await auth.signOut();
-                            showLogin();
-                            showToast('Usuario no encontrado en el sistema', 'error');
+                            // Usuario no encontrado - CREARLO AUTOMÁTICAMENTE
+                            console.log('Creando usuario automáticamente en Firestore...');
+                            
+                            // Extraer username del email (parte antes del @)
+                            const username = user.email.split('@')[0];
+                            
+                            await db.collection('users').doc(user.uid).set({
+                                email: user.email,
+                                username: username,
+                                fullName: username, // Usar el email como nombre inicial
+                                role: 'admin', // Primer usuario será admin
+                                active: true,
+                                profileImage: null,
+                                createdAt: new Date().toISOString()
+                            });
+                            
+                            // Obtener el documento creado
+                            currentUserData = {
+                                id: user.uid,
+                                email: user.email,
+                                username: username,
+                                fullName: username,
+                                role: 'admin',
+                                active: true,
+                                profileImage: null,
+                                createdAt: new Date().toISOString()
+                            };
+                            
+                            showToast('¡Bienvenido! Usuario creado automáticamente', 'success');
+                            showApp();
                         }
                     } catch (error) {
-                        console.error('Error getting user data:', error);
+                        console.error('Error getting/creating user data:', error);
+                        document.getElementById('errorMessage').textContent = 'Error al verificar usuario: ' + error.message;
+                        document.getElementById('errorMessage').style.display = 'block';
                         showLogin();
                     }
                 } else {
