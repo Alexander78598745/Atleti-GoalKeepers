@@ -1116,9 +1116,6 @@
                 showToast('No se puede descargar el PDF', 'error');
             }
         }
-                showToast('No se puede descargar el PDF', 'error');
-            }
-        }
         
         // ==================== UPLOAD ====================
         function renderUpload(container) {
@@ -1638,8 +1635,6 @@
                     .catch(error => {
                         console.log('ServiceWorker no registrado:', error.message);
                     });
-            });
-        }
             });
         }
         
