@@ -1095,9 +1095,7 @@
         
         function viewPDF(id) {
             const session = sessionsData.find(s => s.id === id);
-            if (session && session.pdfUrl) {
-                window.open(session.pdfUrl, '_blank');
-            } else if (session && session.pdfData) {
+            if (session && session.pdfData) {
                 const blob = base64ToBlob(session.pdfData, 'application/pdf');
                 const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
@@ -1108,19 +1106,16 @@
         
         function downloadPDF(id) {
             const session = sessionsData.find(s => s.id === id);
-            if (session && session.pdfUrl) {
-                const link = document.createElement('a');
-                link.href = session.pdfUrl;
-                link.download = session.originalName || 'sesion.pdf';
-                link.target = '_blank';
-                link.click();
-            } else if (session && session.pdfData) {
+            if (session && session.pdfData) {
                 const blob = base64ToBlob(session.pdfData, 'application/pdf');
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = session.originalName || 'sesion.pdf';
                 link.click();
             } else {
+                showToast('No se puede descargar el PDF', 'error');
+            }
+        }
                 showToast('No se puede descargar el PDF', 'error');
             }
         }
@@ -1146,7 +1141,7 @@
                             <textarea id="sessionDesc" placeholder="Describe los objetivos de la sesión..."></textarea>
                         </div>
                         <div class="form-group">
-                            <label>Archivo PDF</label>
+                            <label>Archivo PDF (máx. 1MB)</label>
                             <div class="dropzone">
                                 <input type="file" id="pdfFile" accept=".pdf" required>
                                 <div id="dropzoneContent">
@@ -1192,30 +1187,40 @@
                 if (!folderId) { showToast('Selecciona una carpeta', 'error'); return; }
                 if (!file) { showToast('Selecciona un PDF', 'error'); return; }
                 
+                // Limitar tamaño a 1MB para Firestore
+                if (file.size > 1000000) {
+                    showToast('El PDF debe ser menor a 1MB', 'error');
+                    return;
+                }
+                
                 uploadBtn.disabled = true;
                 uploadBtn.textContent = 'Subiendo...';
                 
                 try {
-                    // Subir archivo a Firebase Storage
-                    const storageRef = firebase.storage().ref();
-                    const fileRef = storageRef.child(`sessions/${Date.now()}_${file.name}`);
-                    const snapshot = await fileRef.put(file);
-                    const pdfUrl = await snapshot.ref.getDownloadURL();
+                    // Convertir archivo a base64
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
                     
-                    // Guardar referencia en Firestore
-                    await db.collection('sessions').add({
-                        folderId,
-                        title,
-                        description: desc,
-                        originalName: file.name,
-                        pdfUrl,
-                        uploadedBy: currentUser.uid,
-                        uploaderName: currentUserData.fullName,
-                        uploadDate: new Date().toISOString()
-                    });
+                    reader.onload = async () => {
+                        // Guardar directamente en Firestore (base64)
+                        await db.collection('sessions').add({
+                            folderId,
+                            title,
+                            description: desc,
+                            originalName: file.name,
+                            pdfData: reader.result, // base64
+                            uploadedBy: currentUser.uid,
+                            uploaderName: currentUserData.fullName,
+                            uploadDate: new Date().toISOString()
+                        });
+                        
+                        showToast('Sesión subida correctamente', 'success');
+                        showPage('dashboard');
+                    };
                     
-                    showToast('Sesión subida correctamente', 'success');
-                    showPage('dashboard');
+                    reader.onerror = (error) => {
+                        throw new Error('Error al leer el archivo');
+                    };
                 } catch (error) {
                     console.error('Upload error:', error);
                     showToast('Error al subir la sesión: ' + error.message, 'error');
