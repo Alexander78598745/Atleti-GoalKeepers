@@ -944,8 +944,6 @@
             const userData = usersData.find(u => u.email === currentUser.email);
             if (userData) {
                 currentUserData = userData;
-                // Actualizar inmediatamente el nombre en el sidebar
-                document.getElementById('userName').textContent = currentUserData.fullName || currentUser.email;
             }
         }
         
@@ -1029,23 +1027,18 @@
         }
         
         function renderSidebar() {
-            // Buscar directamente en usersData para obtener los datos más recientes de Firestore
-            const freshUserData = usersData.find(u => u.id === currentUser?.uid);
-            
-            // Usar los datos más recientes o caer a currentUserData
-            const userData = freshUserData || currentUserData;
+            // Buscar el usuario actual en usersData (datos más recientes de Firestore)
+            const currentUserFromData = usersData.find(u => u.id === currentUser?.uid) || currentUserData;
             
             const userAvatar = document.getElementById('userAvatar');
-            if (userData?.profileImage) {
-                userAvatar.innerHTML = `<img src="${userData.profileImage}" alt="${escapeHtml(userData.fullName)}">`;
+            if (currentUserFromData?.profileImage) {
+                userAvatar.innerHTML = `<img src="${currentUserFromData.profileImage}" alt="${escapeHtml(currentUserFromData.fullName)}">`;
             } else {
-                userAvatar.textContent = getInitials(userData?.fullName);
+                userAvatar.textContent = getInitials(currentUserFromData?.fullName);
             }
             
-            // Mostrar nombre completo - PRIORIDAD: fullName > username > email
-            // El fullName debe estar guardado en Firestore
-            const displayName = userData?.fullName || userData?.username || currentUser?.email || 'Usuario';
-            document.getElementById('userName').textContent = displayName;
+            // Mostrar el nombre desde los datos de Firestore
+            document.getElementById('userName').textContent = currentUserFromData?.fullName || currentUserFromData?.username || currentUser?.email;
         }
         
         // Login form handler
