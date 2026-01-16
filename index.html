@@ -1027,18 +1027,14 @@
         }
         
         function renderSidebar() {
-            // Buscar el usuario actual en usersData (datos más recientes de Firestore)
-            const currentUserFromData = usersData.find(u => u.id === currentUser?.uid) || currentUserData;
-            
             const userAvatar = document.getElementById('userAvatar');
-            if (currentUserFromData?.profileImage) {
-                userAvatar.innerHTML = `<img src="${currentUserFromData.profileImage}" alt="${escapeHtml(currentUserFromData.fullName)}">`;
+            if (currentUserData?.profileImage) {
+                userAvatar.innerHTML = `<img src="${currentUserData.profileImage}" alt="${escapeHtml(currentUserData.fullName)}">`;
             } else {
-                userAvatar.textContent = getInitials(currentUserFromData?.fullName);
+                userAvatar.textContent = getInitials(currentUserData?.fullName);
             }
-            
-            // Mostrar el nombre desde los datos de Firestore
-            document.getElementById('userName').textContent = currentUserFromData?.fullName || currentUserFromData?.username || currentUser?.email;
+            // Actualizar nombre también
+            document.getElementById('userName').textContent = currentUserData?.fullName || currentUser?.email;
         }
         
         // Login form handler
@@ -1663,10 +1659,12 @@
                     showToast('Usuario actualizado correctamente', 'success');
                     closeModal('userModal');
                     
-                    // Forzar actualización inmediata de la UI si es el usuario actual
+                    // Actualizar immediately if it's the current user
                     if (editingUserId === currentUser.uid) {
+                        // Update currentUserData with the new data
                         currentUserData = { ...currentUserData, ...updateData };
-                        document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.username || currentUser.email || 'Usuario';
+                        // Update the sidebar immediately
+                        document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.username || currentUser.email;
                     }
                 } else {
                     // Crear nuevo usuario usando instancia secundaria de Auth
