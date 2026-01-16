@@ -1029,12 +1029,19 @@
         }
         
         function renderSidebar() {
+            // Buscar directamente en usersData para obtener los datos más recientes
+            const freshUserData = usersData.find(u => u.id === currentUser?.uid) || currentUserData;
+            
             const userAvatar = document.getElementById('userAvatar');
-            if (currentUserData?.profileImage) {
-                userAvatar.innerHTML = `<img src="${currentUserData.profileImage}" alt="${escapeHtml(currentUserData.fullName)}">`;
+            if (freshUserData?.profileImage) {
+                userAvatar.innerHTML = `<img src="${freshUserData.profileImage}" alt="${escapeHtml(freshUserData.fullName)}">`;
             } else {
-                userAvatar.textContent = getInitials(currentUserData?.fullName);
+                userAvatar.textContent = getInitials(freshUserData?.fullName);
             }
+            
+            // Mostrar nombre completo directamente desde los datos más recientes
+            const nameToShow = freshUserData?.fullName || freshUserData?.username || currentUser?.email || 'Usuario';
+            document.getElementById('userName').textContent = nameToShow;
         }
         
         // Login form handler
