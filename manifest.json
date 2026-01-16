@@ -2,11 +2,12 @@
     "name": "AtletiKeepers Pro",
     "short_name": "AtletiKeepers",
     "description": "Plataforma de Entrenadores de Porteros del Atlético de Madrid",
-    "start_url": "/AtletiKeepers-Pro/",
+    "start_url": ".",
+    "scope": ".",
     "display": "standalone",
+    "orientation": "portrait-primary",
     "background_color": "#272E61",
     "theme_color": "#CB3524",
-    "orientation": "portrait-primary",
     "icons": [
         {
             "src": "icon-192.png",

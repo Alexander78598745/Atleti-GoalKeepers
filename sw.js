@@ -1,12 +1,12 @@
 // Service Worker para AtletiKeepers Pro PWA
-const CACHE_NAME = 'atleti-keepers-v1';
+const CACHE_NAME = 'atleti-keepers-v2';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/firebase-config.js',
-    '/manifest.json',
-    '/icon-192.png',
-    '/icon-512.png'
+    '.',
+    'index.html',
+    'firebase-config.js',
+    'manifest.json',
+    'icon-192.png',
+    'icon-512.png'
 ];
 
 // Instalar Service Worker
@@ -45,7 +45,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     // Para llamadas a Firebase, ir a la red directamente
     if (event.request.url.includes('firebaseio.com') || 
-        event.request.url.includes('googleapis.com')) {
+        event.request.url.includes('googleapis.com') ||
+        event.request.url.includes('firebasestorage.googleapis.com')) {
         event.respondWith(fetch(event.request));
         return;
     }
@@ -79,7 +80,7 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(() => {
                 // Si no hay internet ni cache, mostrar página offline
-                return caches.match('/index.html');
+                return caches.match('index.html');
             })
     );
 });
