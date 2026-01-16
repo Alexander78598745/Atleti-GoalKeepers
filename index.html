@@ -1033,8 +1033,8 @@
             } else {
                 userAvatar.textContent = getInitials(currentUserData?.fullName);
             }
-            // Actualizar nombre también
-            document.getElementById('userName').textContent = currentUserData?.fullName || currentUser?.email;
+            // Mostrar username primero, luego fullName, luego email
+            document.getElementById('userName').textContent = currentUserData?.username || currentUserData?.fullName || currentUser?.email;
         }
         
         // Login form handler
@@ -1218,7 +1218,7 @@
                         ${s.description ? `<p class="session-description">${escapeHtml(s.description)}</p>` : ''}
                         <div class="session-uploader">
                             ${uploaderImage}
-                            <span>Subido por: ${escapeHtml(uploader?.fullName || uploader?.username || s.uploaderName)}</span>
+                            <span>Subido por: ${escapeHtml(uploader?.username || uploader?.fullName || s.uploaderName)}</span>
                         </div>
                     </div>
                     <div class="session-footer">
@@ -1663,8 +1663,8 @@
                     if (editingUserId === currentUser.uid) {
                         // Update currentUserData with the new data
                         currentUserData = { ...currentUserData, ...updateData };
-                        // Update the sidebar immediately
-                        document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.username || currentUser.email;
+                        // Update the sidebar immediately - username primero
+                        document.getElementById('userName').textContent = currentUserData.username || currentUserData.fullName || currentUser.email;
                     }
                 } else {
                     // Crear nuevo usuario usando instancia secundaria de Auth
