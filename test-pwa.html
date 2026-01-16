@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar PWA</title>
+</head>
+<body>
+    <h1>Verificación PWA</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        async function checkPWA() {
+            let html = '<h2>Resultados:</h2>';
+            
+            // Check manifest
+            try {
+                const manifestResponse = await fetch('manifest.json');
+                const manifest = await manifestResponse.json();
+                html += `<p style="color:green">✓ manifest.json accesible</p>`;
+                html += `<p>start_url: ${manifest.start_url}</p>`;
+                html += `<p>display: ${manifest.display}</p>`;
+            } catch (e) {
+                html += `<p style="color:red">✗ manifest.json NO accesible: ${e.message}</p>`;
+            }
+            
+            // Check icons
+            const iconSizes = [192, 512];
+            for (const size of iconSizes) {
+                try {
+                    const img = new Image();
+                    img.src = `icon-${size}.png`;
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                    });
+                    html += `<p style="color:green">✓ icon-${size}.png accesible</p>`;
+                } catch (e) {
+                    html += `<p style="color:red">✗ icon-${size}.png NO accesible</p>`;
+                }
+            }
+            
+            // Check service worker
+            if ('serviceWorker' in navigator) {
+                html += `<p style="color:green">✓ Service Worker soportado</p>`;
+                try {
+                    const reg = await navigator.serviceWorker.getRegistration();
+                    if (reg) {
+                        html += `<p style="color:green">✓ Service Worker registrado</p>`;
+                    } else {
+                        html += `<p style="color:orange">○ Service Worker NO registrado</p>`;
+                    }
+                } catch (e) {
+                    html += `<p style="color:red">✗ Error SW: ${e.message}</p>`;
+                }
+            } else {
+                html += `<p style="color:red">✗ Service Worker NO soportado</p>`;
+            }
+            
+            // Check beforeinstallprompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                html += `<p style="color:green">✓ beforeinstallprompt disponible - PUEDES INSTALAR</p>`;
+            });
+            
+            html += '<p>Revisa si hay errores rojos arriba. Si todo está verde, el PWA debería poder instalarse.</p>';
+            
+            results.innerHTML = html;
+        }
+        
+        checkPWA();
+    </script>
+</body>
+</html>
