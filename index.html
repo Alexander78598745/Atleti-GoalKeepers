@@ -754,6 +754,30 @@
         </div>
     </div>
 
+    <!-- Change Trainer Modal -->
+    <div class="modal" id="changeTrainerModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cambiar Entrenador</h3>
+                <button class="modal-close" onclick="closeModal('changeTrainerModal')">✕</button>
+            </div>
+            <form id="changeTrainerForm" class="modal-body">
+                <input type="hidden" id="changeTrainerFolderId">
+                <div class="form-group">
+                    <label>Seleccionar Nuevo Entrenador</label>
+                    <select id="newTrainerSelect" required>
+                        <option value="">Seleccionar entrenador...</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('changeTrainerModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- PWA Install Banner -->
     <div id="pwaInstallBanner" style="display:none;">
         <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--atm-blue);color:white;">
@@ -1126,17 +1150,22 @@
                                 <div class="folder-count">${sessionsData.length} sesiones</div>
                             </div>
                         </div>
-                        ${foldersData.map(f => `
+                        ${foldersData.map(f => {
+                            const assignedUser = usersData.find(u => u.id === f.userId);
+                            const sessionCount = sessionsData.filter(s => s.folderId === f.id).length;
+                            return `
                             <div class="folder-card ${currentFolder === f.id ? 'active' : ''}" onclick="filterByFolder('${f.id}')">
                                 <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                                 </svg>
                                 <div>
                                     <div class="folder-name">${escapeHtml(f.name)}</div>
-                                    <div class="folder-count">${sessionsData.filter(s => s.folderId === f.id).length} sesiones</div>
+                                    <div class="folder-count">${assignedUser ? escapeHtml(assignedUser.fullName) : 'Sin asignar'}</div>
+                                    <div style="font-size:0.75rem;color:var(--gray-500);">${sessionCount} ${sessionCount === 1 ? 'sesión' : 'sesiones'}</div>
                                 </div>
                             </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 `;
             }
@@ -1454,6 +1483,7 @@
                                 <div class="folder-name">${escapeHtml(f.name)}</div>
                                 <div class="folder-count">${assignedUser ? escapeHtml(assignedUser.fullName) : 'Sin asignar'}</div>
                             </div>
+                            <button class="btn btn-secondary btn-icon-action" onclick="showChangeTrainerModal('${f.id}')" title="Cambiar entrenador">✏️</button>
                             <button class="btn btn-icon-action" style="background:var(--atm-red);color:white;" onclick="deleteUser('${f.id}', 'folder')" title="Eliminar">🗑️</button>
                         </div>
                         `;
@@ -1697,6 +1727,45 @@
             } catch (error) {
                 console.error('Error creating folder:', error);
                 showToast('Error al crear carpeta: ' + error.message, 'error');
+            }
+        });
+        
+        // Show change trainer modal
+        function showChangeTrainerModal(folderId) {
+            const folder = foldersData.find(f => f.id === folderId);
+            if (!folder) return;
+            
+            document.getElementById('changeTrainerFolderId').value = folderId;
+            
+            const users = usersData.filter(u => u.role === 'coach');
+            const select = document.getElementById('newTrainerSelect');
+            
+            if (users.length > 0) {
+                select.innerHTML = '<option value="">Seleccionar entrenador...</option>' + 
+                    users.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)}</option>`).join('');
+            } else {
+                select.innerHTML = '<option value="">No hay entrenadores disponibles</option>';
+            }
+            
+            openModal('changeTrainerModal');
+        }
+        
+        // Handle change trainer form
+        document.getElementById('changeTrainerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const folderId = document.getElementById('changeTrainerFolderId').value;
+            const userId = document.getElementById('newTrainerSelect').value;
+            
+            try {
+                await db.collection('folders').doc(folderId).update({
+                    userId: userId || null
+                });
+                showToast('Entrenador actualizado correctamente', 'success');
+                closeModal('changeTrainerModal');
+            } catch (error) {
+                console.error('Error updating trainer:', error);
+                showToast('Error al actualizar: ' + error.message, 'error');
             }
         });
         
