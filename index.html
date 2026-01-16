@@ -415,6 +415,25 @@
         .empty-state h3 { color: var(--gray-700); margin-bottom: 0.5rem; }
         .empty-state p { color: var(--gray-500); margin-bottom: 1.5rem; }
         
+        /* PWA Install Banner */
+        #pwaInstallBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        }
+        @media (min-width: 768px) {
+            #pwaInstallBanner {
+                max-width: 400px;
+                right: 1rem;
+                left: auto;
+                bottom: 1rem;
+                border-radius: 12px 12px 0 0;
+            }
+        }
+        
         /* Toast Notifications */
         .toast-container {
             position: fixed;
@@ -732,6 +751,22 @@
                 <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancelar</button>
                 <button class="btn btn-primary" style="background:var(--atm-red)" id="confirmDeleteBtn">Eliminar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="pwaInstallBanner" style="display:none;">
+        <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--atm-blue);color:white;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;flex-shrink:0;">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12" y2="18"></line>
+            </svg>
+            <div style="flex:1;">
+                <div style="font-weight:600;font-size:0.95rem;">Instala la App</div>
+                <div style="font-size:0.8rem;opacity:0.9;">Añade AtletiKeepers a tu pantalla de inicio</div>
+            </div>
+            <button onclick="installPWA()" style="background:var(--atm-red);color:white;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:600;cursor:pointer;">Instalar</button>
+            <button onclick="dismissInstallBanner()" style="background:transparent;color:white;border:none;font-size:1.2rem;cursor:padding-left:0.5rem;">✕</button>
         </div>
     </div>
 
@@ -1726,6 +1761,42 @@
                         console.log('ServiceWorker no registrado:', error.message);
                     });
             });
+        }
+        
+        // ==================== PWA INSTALLATION ====================
+        let deferredPrompt;
+        
+        // Detectar cuando la app puede ser instalada
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevenir que Chrome muestre el prompt automáticamente
+            e.preventDefault();
+            deferredPrompt = e;
+            // Mostrar el banner de instalación
+            document.getElementById('pwaInstallBanner').style.display = 'block';
+        });
+        
+        // Ocultar banner si el usuario ya instaló la app
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('pwaInstallBanner').style.display = 'none';
+            deferredPrompt = null;
+            showToast('App instalada correctamente', 'success');
+        });
+        
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Usuario aceptó instalar la app');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('pwaInstallBanner').style.display = 'none';
+                });
+            }
+        }
+        
+        function dismissInstallBanner() {
+            document.getElementById('pwaInstallBanner').style.display = 'none';
         }
         
         // ==================== INITIALIZATION ====================
