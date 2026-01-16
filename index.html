@@ -964,13 +964,13 @@
                             // Usuario no encontrado - CREARLO AUTOMÁTICAMENTE
                             console.log('Creando usuario automáticamente en Firestore...');
                             
-                            // Extraer username del email (parte antes del @)
+                            // Usar el email completo como nombre inicial
                             const username = user.email.split('@')[0];
                             
                             await db.collection('users').doc(user.uid).set({
                                 email: user.email,
                                 username: username,
-                                fullName: username, // Usar el email como nombre inicial
+                                fullName: user.email.split('@')[0].replace('.', ' '), // Convertir alexander.arroyave.cardenas a "alexander arroyave cardenas"
                                 role: 'admin', // Primer usuario será admin
                                 active: true,
                                 profileImage: null,
@@ -982,7 +982,7 @@
                                 id: user.uid,
                                 email: user.email,
                                 username: username,
-                                fullName: username,
+                                fullName: user.email.split('@')[0].replace('.', ' '),
                                 role: 'admin',
                                 active: true,
                                 profileImage: null,
@@ -1033,6 +1033,8 @@
             } else {
                 userAvatar.textContent = getInitials(currentUserData?.fullName);
             }
+            // Actualizar también el nombre del usuario en el sidebar para reflejar cambios
+            document.getElementById('userName').textContent = currentUserData?.fullName || currentUser?.email || 'Usuario';
         }
         
         // Login form handler
@@ -1195,8 +1197,8 @@
                 const folder = foldersData.find(f => f.id === s.folderId);
                 const uploader = usersData.find(u => u.id === s.uploadedBy);
                 const uploaderImage = uploader?.profileImage ? 
-                    `<img src="${uploader.profileImage}" alt="${escapeHtml(uploader.fullName)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:4px;">` : 
-                    `<div class="user-avatar" style="width:20px;height:20px;font-size:0.65rem;background:var(--gray-400);">${getInitials(s.uploaderName)}</div>`;
+                    `<img src="${uploader.profileImage}" alt="${escapeHtml(uploader?.fullName)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:4px;">` : 
+                    `<div class="user-avatar" style="width:20px;height:20px;font-size:0.65rem;background:var(--gray-400);">${getInitials(uploader?.fullName || s.uploaderName)}</div>`;
                 return `
                 <div class="session-card">
                     <div class="session-header">
@@ -1216,7 +1218,7 @@
                         ${s.description ? `<p class="session-description">${escapeHtml(s.description)}</p>` : ''}
                         <div class="session-uploader">
                             ${uploaderImage}
-                            <span>Subido por: ${escapeHtml(s.uploaderName)}</span>
+                            <span>Subido por: ${escapeHtml(uploader?.fullName || s.uploaderName)}</span>
                         </div>
                     </div>
                     <div class="session-footer">
@@ -1832,19 +1834,43 @@
         // ==================== PWA INSTALLATION ====================
         let deferredPrompt;
         
+        // Función para verificar si debe mostrar el banner de instalación
+        function shouldShowInstallBanner() {
+            // No mostrar si ya está en modo standalone (app instalada)
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                return false;
+            }
+            // No mostrar si el usuario ya cerró el banner anteriormente
+            if (localStorage.getItem('pwaInstallBannerDismissed') === 'true') {
+                return false;
+            }
+            return true;
+        }
+        
         // Detectar cuando la app puede ser instalada
         window.addEventListener('beforeinstallprompt', (e) => {
             // Prevenir que Chrome muestre el prompt automáticamente
             e.preventDefault();
             deferredPrompt = e;
-            // Mostrar el banner de instalación
-            document.getElementById('pwaInstallBanner').style.display = 'block';
+            
+            // Solo mostrar el banner si cumple las condiciones
+            if (shouldShowInstallBanner()) {
+                document.getElementById('pwaInstallBanner').style.display = 'block';
+            }
+        });
+        
+        // Verificar al cargar si ya está en modo standalone
+        window.addEventListener('load', () => {
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                document.getElementById('pwaInstallBanner').style.display = 'none';
+            }
         });
         
         // Ocultar banner si el usuario ya instaló la app
         window.addEventListener('appinstalled', () => {
             document.getElementById('pwaInstallBanner').style.display = 'none';
             deferredPrompt = null;
+            localStorage.setItem('pwaInstallBannerDismissed', 'true');
             showToast('App instalada correctamente', 'success');
         });
         
@@ -1863,6 +1889,8 @@
         
         function dismissInstallBanner() {
             document.getElementById('pwaInstallBanner').style.display = 'none';
+            // Recordar que el usuario cerró el banner
+            localStorage.setItem('pwaInstallBannerDismissed', 'true');
         }
         
         // ==================== INITIALIZATION ====================
