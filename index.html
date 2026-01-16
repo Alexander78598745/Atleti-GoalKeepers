@@ -1029,19 +1029,23 @@
         }
         
         function renderSidebar() {
-            // Buscar directamente en usersData para obtener los datos más recientes
-            const freshUserData = usersData.find(u => u.id === currentUser?.uid) || currentUserData;
+            // Buscar directamente en usersData para obtener los datos más recientes de Firestore
+            const freshUserData = usersData.find(u => u.id === currentUser?.uid);
+            
+            // Usar los datos más recientes o caer a currentUserData
+            const userData = freshUserData || currentUserData;
             
             const userAvatar = document.getElementById('userAvatar');
-            if (freshUserData?.profileImage) {
-                userAvatar.innerHTML = `<img src="${freshUserData.profileImage}" alt="${escapeHtml(freshUserData.fullName)}">`;
+            if (userData?.profileImage) {
+                userAvatar.innerHTML = `<img src="${userData.profileImage}" alt="${escapeHtml(userData.fullName)}">`;
             } else {
-                userAvatar.textContent = getInitials(freshUserData?.fullName);
+                userAvatar.textContent = getInitials(userData?.fullName);
             }
             
-            // Mostrar nombre completo directamente desde los datos más recientes
-            const nameToShow = freshUserData?.fullName || freshUserData?.username || currentUser?.email || 'Usuario';
-            document.getElementById('userName').textContent = nameToShow;
+            // Mostrar nombre completo - PRIORIDAD: fullName > username > email
+            // El fullName debe estar guardado en Firestore
+            const displayName = userData?.fullName || userData?.username || currentUser?.email || 'Usuario';
+            document.getElementById('userName').textContent = displayName;
         }
         
         // Login form handler
@@ -1847,14 +1851,16 @@
         // ==================== PWA INSTALLATION ====================
         let deferredPrompt;
         
-        // Función para verificar si debe mostrar el banner de instalación
-        function shouldShowInstallBanner() {
-            // No mostrar si ya está en modo standalone (app instalada)
+        // Función para verificar si puede mostrarse el banner
+        function canShowPwaBanner() {
+            // NO mostrar si ya está en modo standalone (app instalada)
             if (window.matchMedia('(display-mode: standalone)').matches) {
+                console.log('Banner hidden: App is running in standalone mode');
                 return false;
             }
-            // No mostrar si el usuario ya cerró el banner anteriormente
-            if (localStorage.getItem('pwaInstallBannerDismissed') === 'true') {
+            // NO mostrar si el usuario ya cerró el banner
+            if (localStorage.getItem('pwaBannerDismissed') === 'true') {
+                console.log('Banner hidden: User dismissed the banner previously');
                 return false;
             }
             return true;
@@ -1862,13 +1868,13 @@
         
         // Detectar cuando la app puede ser instalada
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevenir que Chrome muestre el prompt automáticamente
             e.preventDefault();
             deferredPrompt = e;
             
-            // Solo mostrar el banner si cumple las condiciones
-            if (shouldShowInstallBanner()) {
+            // Solo mostrar si se cumplen las condiciones
+            if (canShowPwaBanner()) {
                 document.getElementById('pwaInstallBanner').style.display = 'block';
+                console.log('Banner shown: Conditions met');
             }
         });
         
@@ -1883,7 +1889,7 @@
         window.addEventListener('appinstalled', () => {
             document.getElementById('pwaInstallBanner').style.display = 'none';
             deferredPrompt = null;
-            localStorage.setItem('pwaInstallBannerDismissed', 'true');
+            localStorage.setItem('pwaBannerDismissed', 'true');
             showToast('App instalada correctamente', 'success');
         });
         
@@ -1902,8 +1908,7 @@
         
         function dismissInstallBanner() {
             document.getElementById('pwaInstallBanner').style.display = 'none';
-            // Recordar que el usuario cerró el banner
-            localStorage.setItem('pwaInstallBannerDismissed', 'true');
+            localStorage.setItem('pwaBannerDismissed', 'true');
         }
         
         // ==================== INITIALIZATION ====================
