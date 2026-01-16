@@ -944,6 +944,8 @@
             const userData = usersData.find(u => u.email === currentUser.email);
             if (userData) {
                 currentUserData = userData;
+                // Actualizar inmediatamente el nombre en el sidebar
+                document.getElementById('userName').textContent = currentUserData.fullName || currentUser.email;
             }
         }
         
@@ -1033,8 +1035,6 @@
             } else {
                 userAvatar.textContent = getInitials(currentUserData?.fullName);
             }
-            // Actualizar también el nombre del usuario en el sidebar para reflejar cambios
-            document.getElementById('userName').textContent = currentUserData?.fullName || currentUser?.email || 'Usuario';
         }
         
         // Login form handler
@@ -1218,7 +1218,7 @@
                         ${s.description ? `<p class="session-description">${escapeHtml(s.description)}</p>` : ''}
                         <div class="session-uploader">
                             ${uploaderImage}
-                            <span>Subido por: ${escapeHtml(uploader?.fullName || s.uploaderName)}</span>
+                            <span>Subido por: ${escapeHtml(uploader?.fullName || uploader?.username || s.uploaderName)}</span>
                         </div>
                     </div>
                     <div class="session-footer">
@@ -1658,6 +1658,12 @@
                     await db.collection('users').doc(editingUserId).update(updateData);
                     showToast('Usuario actualizado correctamente', 'success');
                     closeModal('userModal');
+                    
+                    // Forzar actualización inmediata de la UI si es el usuario actual
+                    if (editingUserId === currentUser.uid) {
+                        currentUserData = { ...currentUserData, ...updateData };
+                        document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.username || currentUser.email || 'Usuario';
+                    }
                 } else {
                     // Crear nuevo usuario usando instancia secundaria de Auth
                     // Esto permite que el admin permanezca logueado
